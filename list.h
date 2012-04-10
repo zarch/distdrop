@@ -36,5 +36,5 @@ extern list create_empty_list(void);
 extern void add_point_to_list(int, int, list);
 /* extern void add_point_to_order_list(int, int, list); */
 extern void populate(int, list);
-/* extern void print_list(list); */
+extern void print_list(list);
 /* extern void free_list(list); */
