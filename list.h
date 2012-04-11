@@ -39,4 +39,4 @@ extern void populate(int, list *);
 extern void populate_inverse_rows_cols(int, int, list *);
 extern void order_populate_inverse_rows_cols(int, int, list *);
 extern void print_list(list *);
-/* extern void free_list(list *); */
+extern void free_list(list *);
