@@ -1,5 +1,6 @@
 #define NROWS 10
 #define NCOLS 11
+#define NMV 8
 #define NULL_MAP 0
 
 
@@ -16,16 +17,17 @@ typedef struct __move__
 
 
 /* global variables declaration */
-extern short int road;
-extern short int domain;
-extern float elevation;
-extern double rdist;
-extern short int rdir;
-extern float rdrop_up;
-extern float rdrop_dw;
-extern short int not_used;
-extern short int mv;
-extern short int dir;
-extern double dist;
+
+extern short int road[NROWS][NCOLS];
+extern short int domain[NROWS][NCOLS];
+extern float elevation[NROWS][NCOLS];
+extern double rdist[NROWS][NCOLS];
+extern short int rdir[NROWS][NCOLS];
+extern float rdrop_up[NROWS][NCOLS];
+extern float rdrop_dw[NROWS][NCOLS];
+extern short int not_used[NROWS][NCOLS];
+extern short int mv[NMV][2];
+extern short int dir[NMV];
+extern double dist[NMV];
 extern move movement;
 
