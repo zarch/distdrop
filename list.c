@@ -78,6 +78,11 @@ add_point_to_order_list(int row, int col, list *l)
           e_new->next = e_next;
           break;
         }
+        else
+        {
+          /* Update previous element with the next */
+          e_prev = e_next;
+        }
       }
     }
   }
@@ -91,6 +96,26 @@ populate(int nrows, list *l)
   int row;
   for (row = 0; row < nrows; row++)
     add_point_to_list(row, 0, l);
+}
+
+void
+populate_inverse_rows_cols(int nrows, int ncols, list *l)
+{
+  int row;
+  int col;
+  for (col = 0; col < ncols; col++)
+    for (row = 0; row < nrows; row++)
+      add_point_to_list(row, col, l);
+}
+
+void
+order_populate_inverse_rows_cols(int nrows, int ncols, list *l)
+{
+  int row;
+  int col;
+  for (col = 0; col < ncols; col++)
+    for (row = 0; row < nrows; row++)
+      add_point_to_order_list(row, col, l);
 }
 
 list *

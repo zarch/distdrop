@@ -34,7 +34,9 @@ typedef struct __list__
 /* global functions declaration */
 extern list *create_empty_list(void);
 extern void add_point_to_list(int, int, list *);
-/* extern void add_point_to_order_list(int, int, list *); */
+extern void add_point_to_order_list(int, int, list *);
 extern void populate(int, list *);
+extern void populate_inverse_rows_cols(int, int, list *);
+extern void order_populate_inverse_rows_cols(int, int, list *);
 extern void print_list(list *);
 /* extern void free_list(list *); */
