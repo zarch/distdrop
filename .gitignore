@@ -1,0 +1,16 @@
+
+# Can ignore specific files
+#.DS_Store
+
+# Use wildcards as well
+*~
+*.o
+*.pyc
+*.kdev4
+
+# Can also ignore all directories and files in a directory.
+.eric*
+.rope*
+
+#tmp/**/*
+
