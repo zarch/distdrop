@@ -7,10 +7,11 @@
 #ifndef TEST_H
 #define TEST_H
 typedef struct __move__
-{ short int    length;
-  short int*   mv;
-  short int*   dir;
-  double* dist;
+{
+    short int    length;
+    short int*   mv;
+    short int*   dir;
+    double* dist;
 } move;
 
 #endif  /* TEST_H */
