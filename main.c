@@ -5,13 +5,22 @@
 
 /*
  * check the code with:
- * 
+ *
  * $ clang main.c -fsyntax-only
  * $ gcc -Wall -pedantic -std=c11 -c main.c
  * $ gcc -Wall -pedantic -std=c99 -c main.c
+ * $ valgrind --leak-check=full --show-reachable=yes ./distdrop
  *
  *
  */
+
+
+
+void checktest ( int result )
+{
+    /* Interrupt the execution if one of test failed */
+    if ( result != 0 ) printf ( "\n\n Test Failed!\n\n\n" ); /* TODO: INTERRUPT*/;
+}
 
 int test_list()
 {
@@ -33,18 +42,28 @@ int test_list()
 
 int test_drop()
 {
+    printf ( "    Get not null...\n" );
     list *road_points = get_not_null ( road );
+    /*
     print_list ( road_points );
     free_list ( road_points );
+    */
+    printf ( "    Execute...\n" );
+    execute( road_points, domain );
+    printf ( "\n\n    Print rdir...\n" );
+    print_array_short( rdir );
+    printf ( "\n\n    Print rdist...\n" );
+    print_array_double( rdist );
+    /* prove( road );*/
     return 0;
 }
 
 int all_tests()
 {
     printf ( "\n\n\nTest list\n=============\n\n" );
-    test_list();
+    checktest ( test_list() );
     printf ( "\n\n\nTest drop\n=============\n\n" );
-    test_drop();
+    checktest ( test_drop() );
     return 0;
 }
 

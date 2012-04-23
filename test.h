@@ -1,17 +1,17 @@
-#define NROWS 10
-#define NCOLS 11
-#define NMV 8
-#define NULL_MAP 0
+#define NROWS 10        /* number of rows */
+#define NCOLS 11        /* number of columns */
+#define NMV 8           /* number of possible movement */
+#define NULL_MAP 0      /* value of null value in the map */
+#define NULL_NEIG -9999 /* value of null value in the map */
 
 
 #ifndef TEST_H
 #define TEST_H
 typedef struct __move__
 {
-    short int    length;
-    short int*   mv;
-    short int*   dir;
-    double* dist;
+    short int mv[2];
+    short int dir;
+    double    dist;
 } move;
 
 #endif  /* TEST_H */
@@ -27,8 +27,6 @@ extern short int rdir[NROWS][NCOLS];
 extern float rdrop_up[NROWS][NCOLS];
 extern float rdrop_dw[NROWS][NCOLS];
 extern short int not_used[NROWS][NCOLS];
-extern short int mv[NMV][2];
-extern short int dir[NMV];
-extern double dist[NMV];
-extern move movement;
+extern move movements[NMV];
+
 

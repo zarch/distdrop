@@ -1,3 +1,5 @@
+CFLAGS = -Wall -pedantic -std=c99 -ggdb -g2
+
 distdrop: main.o list.o test.o drop.o
 	$(CC) -o distdrop main.o list.o test.o drop.o
 
