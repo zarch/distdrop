@@ -35,7 +35,7 @@ list * get_not_null ( short int ( *map ) [NCOLS] )
             if ( map[row][col] != NULL_MAP ) /* Rast_is_null_value( ) */
             {
                 /* add to a list */
-                printf("not_null, row: %d, col: %d", row, col);
+                /* printf("not_null, row: %d, col: %d", row, col); */
                 add_point_to_order_list ( row, col, not_null );
             }
         }
@@ -148,11 +148,13 @@ int prove( short ( *map ) [NCOLS] )
 int execute ( list *points )
 {
     int i, n, nx, ny, px, py, n_last, p_last;
-    short value;
+    /* short value; */
     elem *e, *p;
     /* define row maps for neighbours and pixel*/
-    short *ndomain, *nroad, *ndir, *nnot_used;
-    short *pdomain, *proad, *pdir, *pnot_used;
+    short *ndomain, *ndir, *nnot_used;
+    /* short *nroad; */
+    /* short *pdomain, *proad, *pdir; */
+    short *pnot_used;
     float *nelev, *pelev, drop;
     float *ndrop_up, *ndrop_dw, *pdrop_up, *pdrop_dw;
     double *ndist, *pdist, new_dist;
@@ -166,18 +168,17 @@ int execute ( list *points )
         /* over write row and col of the pixel */
         px = e->point.row;
         py = e->point.col;
-        printf ( "--------------------------------------------------------\n");
-        printf ( "pixel: px=%d py=%d\n", px, py);
+
         /* check if pixel row change */
         if (px != p_last)
             {
                 p_last = px;
                 /* using grass function `get_row`
                 * load row of different maps */
-                proad = road[p_last];
-                pdomain = domain[p_last];
+                /* proad = road[p_last]; */
+                /* pdomain = domain[p_last]; */
                 pdist = rdist[p_last];
-                pdir = rdir[p_last];
+                /* pdir = rdir[p_last]; */
                 pnot_used = not_used[p_last];
                 pelev = elevation[p_last];
                 pdrop_up = rdrop_up[p_last];
@@ -199,7 +200,7 @@ int execute ( list *points )
                     n_last = nx;
                     /* using grass function `get_row`
                      * load row of different maps */
-                    nroad = road[n_last];
+                    /* nroad = road[n_last]; */
                     ndomain = domain[n_last];
                     ndist = rdist[n_last];
                     ndir = rdir[n_last];
@@ -212,17 +213,10 @@ int execute ( list *points )
                 /* check if we are inside the domain */
                 if ((ndomain[ny] != NULL_MAP) && (nnot_used[ny] != 0))
                 {
-                    printf ( "===================================\n");
-                    printf ( "nixel: nx=%d ny=%d\n", nx, ny);
-                    printf ( "ndomain[ny]: %d\n", ndomain[ny]);
-                    printf ( "ndist[ny]: %f\n", ndist[ny]);
-                    printf ( "nnot_used[ny]: %d\n", nnot_used[ny]);
                     if (ndist[ny] != NULL_MAP)
                     {
                         /* distance already compute check the smaller one */
-                        printf ( "pdist[py]: %f, mv= %f\n", pdist[py], movements[n].dist);
                         new_dist = pdist[py] + movements[n].dist;
-                        printf ( "ew_dist: %f => %f\n", new_dist, pdist[py] + movements[n].dist );
                         if (ndist[ny] > new_dist)
                         {
                             /* assign the smaller one */
@@ -231,7 +225,6 @@ int execute ( list *points )
                             nnot_used[ny] = 1;
                             add_point_to_order_list(nx, ny, origin_list);
                             drop = nelev[ny] - pelev[py];
-                            printf ( "drop: %f; new_dist: %f\n", drop, ndist[ny]);
                             /* check if drop is positive or negative */
                             if (drop >= 0)
                             {
@@ -251,7 +244,6 @@ int execute ( list *points )
                         ndist[ny] = pdist[py] + movements[n].dist;
                         ndir[ny]   = movements[n].dir;
                         drop = nelev[ny] - pelev[py];
-                        printf ( "drop: %f; new_dist: %f\n", drop, ndist[ny]);
                         /* check if drop is positive or negative */
                         if (drop >= 0)
                         {
@@ -273,16 +265,12 @@ int execute ( list *points )
             }
             /* */
         }
-        printf ( "FINISH ELEMENT\n");
         p = e;
         e = e->next;
         free(p);
-        printf ( "fatto...\n");
     }
     if (origin_list->length != 0 )
     {
-        printf ( "#######################################################\n");
-        printf ( "FINISH LIST\n");
         execute( origin_list );
     }
     return 0;
