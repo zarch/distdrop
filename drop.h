@@ -23,6 +23,7 @@ extern list *get_not_null ( short int (*)[NCOLS2] );
 extern int print_array_short ( short int (*)[NCOLS2] ) ;
 extern int print_dir ( short int (*)[NCOLS2] ) ;
 extern int print_array_double ( double (*)[NCOLS2] ) ;
+extern int print_array_float ( float (*)[NCOLS2] ) ;
 
 
 /*                   nrows, ncols  nmv, null_map, null_neig */

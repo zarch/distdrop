@@ -129,7 +129,7 @@ int print_array_float( float ( *map ) [NCOLS] )
     {
         for ( col = 0; col < NCOLS; col++ )
         {
-            printf(" %.2f", map[row][col]);
+            printf(" %+.2f", map[row][col]);
         }
         printf("\n");
     }
