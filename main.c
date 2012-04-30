@@ -15,7 +15,6 @@
  */
 
 
-
 void checktest ( int result )
 {
     /* Interrupt the execution if one of test failed */
@@ -40,32 +39,132 @@ int test_list()
 }
 
 
-int test_drop()
+int print_result ()
 {
-    printf ( "    Get not null...\n" );
-    list *road_points = get_not_null ( road );
-    /*
-    print_list ( road_points );
-    free_list ( road_points );
-    */
-    printf ( "    Execute...\n" );
-    execute( road_points, domain );
     printf ( "\n\n    Print rdir...\n" );
-    print_array_short( rdir );
+    print_dir( rdir );
     printf ( "\n\n    Print rdist...\n" );
     print_array_double( rdist );
-    /* prove( road );*/
     return 0;
 }
 
-int all_tests()
+int test_distdrop_point_line()
 {
-    printf ( "\n\n\nTest list\n=============\n\n" );
-    checktest ( test_list() );
-    printf ( "\n\n\nTest drop\n=============\n\n" );
-    checktest ( test_drop() );
+    set_globals( NROWS, NCOLS, NULL_MAP, NULL_NEIG );
+    printf ( "\n\n    Print point...\n" );
+    print_array_short( point );
+    printf ( "\n\n    Print line...\n" );
+    print_array_short( line );
+    distdrop( movements, point, line, elevation0,
+              rdist, rdir, not_used, rdrop_up, rdrop_dw );
     return 0;
 }
+
+
+int test_distdrop_point_circle()
+{
+    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
+    printf ( "\n\n    Print point...\n" );
+    print_array_short( point );
+    printf ( "\n\n    Print circle...\n" );
+    print_array_short( circle );
+    distdrop( movements, point, circle, elevation0,
+              rdist, rdir, not_used, rdrop_up, rdrop_dw );
+
+    return 0;
+}
+
+
+int test_distdrop_point_area()
+{
+    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
+    printf ( "\n\n    Print point...\n" );
+    print_array_short( point );
+    printf ( "\n\n    Print area...\n" );
+    print_array_short( area );
+    distdrop( movements, point, area, elevation0,
+              rdist, rdir, not_used, rdrop_up, rdrop_dw );
+
+    return 0;
+}
+
+int test_distdrop_line_line()
+{
+    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
+    printf ( "\n\n    Print line...\n" );
+    print_array_short( line );
+    printf ( "\n\n    Print line...\n" );
+    print_array_short( line );
+    distdrop( movements, line, line, elevation0,
+              rdist, rdir, not_used, rdrop_up, rdrop_dw );
+
+    return 0;
+}
+
+int test_distdrop_line_area()
+{
+    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
+    printf ( "\n\n    Print line...\n" );
+    print_array_short( line );
+    printf ( "\n\n    Print area...\n" );
+    print_array_short( area );
+    distdrop( movements, line, area, elevation0,
+              rdist, rdir, not_used, rdrop_up, rdrop_dw );
+
+    return 0;
+}
+
+/* int test_distdrop_point_line_elev1()
+{
+    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
+    distdrop( movements, line, area, elevation1,
+              rdist, rdir, not_used, rdrop_up, rdrop_dw );
+
+    return 0;
+}
+
+int test_distdrop_point_line_elev2()
+{
+    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
+    distdrop( movements, line, area, elevation2,
+              rdist, rdir, not_used, rdrop_up, rdrop_dw );
+
+    return 0;
+} */
+
+int all_tests()
+{
+    /* printf ( "\n\n\nTest list\n=============\n\n" );
+    checktest ( test_list() ); */
+
+    printf ( "\n\n\nTest distdrop: point-line\n" );
+    printf ( "===================================\n\n" );
+    checktest ( test_distdrop_point_line() );
+    print_result ();
+    
+    /* printf ( "\n\n\nTest distdrop: point-circle\n" );
+    printf ( "===================================\n\n" );
+    checktest ( test_distdrop_point_circle() );
+    print_result (); */
+    
+    /* printf ( "\n\n\nTest distdrop: point-area\n" );
+    printf ( "===================================\n\n" );
+    checktest ( test_distdrop_point_area() );
+    print_result (); */
+
+    /* printf ( "\n\n\nTest distdrop: line-line\n" );
+    printf ( "===================================\n\n" );
+    checktest ( test_distdrop_line_line() );
+    print_result (); */
+    
+    /* printf ( "\n\n\nTest distdrop: line-area\n" );
+    printf ( "===================================\n\n" );
+    checktest ( test_distdrop_line_area() );
+    print_result (); */ 
+    return 0;
+}
+
+
 
 int main()
 {
