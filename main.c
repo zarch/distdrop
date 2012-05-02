@@ -1,6 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include "ascii.h"
 #include "list.h"
-#include "test.h"
 #include "drop.h"
 
 /*
@@ -14,14 +15,10 @@
  *
  */
 
+static void test_distdrop_point_line_elev2();
+static int test_list();
 
-void checktest ( int result )
-{
-    /* Interrupt the execution if one of test failed */
-    if ( result != 0 ) printf ( "\n\n Test Failed!\n\n\n" ); /* TODO: INTERRUPT*/;
-}
-
-int test_list()
+static int test_list()
 {
     list *l = create_empty_list();
     populate_inverse_rows_cols ( 10, 3, l );
@@ -38,168 +35,47 @@ int test_list()
     return 0;
 }
 
-
-int print_result ()
+static void test_distdrop_point_line_elev2()
 {
-    printf ( "\n\n    Print rdir...\n" );
-    print_dir( rdir );
-    printf ( "\n\n    Print rdist...\n" );
-    print_array_double( rdist );
-    return 0;
-}
+    int nrows, ncols;
 
-int test_distdrop_point_line()
-{
-    set_globals( NROWS, NCOLS, NULL_MAP, NULL_NEIG );
-    printf ( "\n\n    Print point...\n" );
-    print_array_short( point );
-    printf ( "\n\n    Print line...\n" );
-    print_array_short( line );
-    distdrop( movements, point, line, elevation0,
-              rdist, rdir, not_used, rdrop_up, rdrop_dw );
-    return 0;
-}
-
-
-int test_distdrop_point_circle()
-{
-    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
-    printf ( "\n\n    Print point...\n" );
-    print_array_short( point );
-    printf ( "\n\n    Print circle...\n" );
-    print_array_short( circle );
-    distdrop( movements, point, circle, elevation0,
-              rdist, rdir, not_used, rdrop_up, rdrop_dw );
-
-    return 0;
-}
-
-
-int test_distdrop_point_area()
-{
-    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
-    printf ( "\n\n    Print point...\n" );
-    print_array_short( point );
-    printf ( "\n\n    Print area...\n" );
-    print_array_short( area );
-    distdrop( movements, point, area, elevation0,
-              rdist, rdir, not_used, rdrop_up, rdrop_dw );
-
-    return 0;
-}
-
-int test_distdrop_line_line()
-{
-    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
-    printf ( "\n\n    Print line...\n" );
-    print_array_short( line );
-    printf ( "\n\n    Print line...\n" );
-    print_array_short( line );
-    distdrop( movements, line, line, elevation0,
-              rdist, rdir, not_used, rdrop_up, rdrop_dw );
-
-    return 0;
-}
-
-int test_distdrop_line_area()
-{
-    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
-    printf ( "\n\n    Print line...\n" );
-    print_array_short( line );
-    printf ( "\n\n    Print area...\n" );
-    print_array_short( area );
-    distdrop( movements, line, area, elevation0,
-              rdist, rdir, not_used, rdrop_up, rdrop_dw );
-
-    return 0;
-}
-
-int test_distdrop_point_line_elev1()
-{
-    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
-    printf ( "\n\n    Print line...\n" );
-    print_array_short( point );
-    printf ( "\n\n    Print area...\n" );
-    print_array_short( line );
-    printf ( "\n\n    Print elevation...\n" );
-    print_array_float( elevation1 );
-    distdrop( movements, point, line, elevation1,
-              rdist, rdir, not_used, rdrop_up, rdrop_dw );
-
-    return 0;
-}
-
-int test_distdrop_point_line_elev2()
-{
-    set_globals(NROWS, NCOLS, NULL_MAP, NULL_NEIG);
-    printf ( "\n\n    Print line...\n" );
-    print_array_short( point );
-    printf ( "\n\n    Print area...\n" );
-    print_array_short( line );
-    printf ( "\n\n    Print elevation...\n" );
-    print_array_float( elevation2 );
-    distdrop( movements, point, line, elevation2,
-              rdist, rdir, not_used, rdrop_up, rdrop_dw );
-    
-    return 0;
-}
-
-int all_tests()
-{
-    /* printf ( "\n\n\nTest list\n=============\n\n" );
-    checktest ( test_list() ); */
-
-    /* printf ( "\n\n\nTest distdrop: point-line\n" );
-    printf ( "===================================\n\n" );
-    checktest ( test_distdrop_point_line() );
-    print_result (); */
-    
-    /* printf ( "\n\n\nTest distdrop: point-circle\n" );
-    printf ( "===================================\n\n" );
-    checktest ( test_distdrop_point_circle() );
-    print_result (); */
-    
-    /* printf ( "\n\n\nTest distdrop: point-area\n" );
-    printf ( "===================================\n\n" );
-    checktest ( test_distdrop_point_area() );
-    print_result (); */
-
-    /* printf ( "\n\n\nTest distdrop: line-line\n" );
-    printf ( "===================================\n\n" );
-    checktest ( test_distdrop_line_line() );
-    print_result (); */
-    
-    /* printf ( "\n\n\nTest distdrop: line-area\n" );
-    printf ( "===================================\n\n" );
-    checktest ( test_distdrop_line_area() );
-    print_result (); */
-
-    /* printf ( "\n\n\nTest distdrop: line-area-elev1\n" );
-    printf ( "===================================\n\n" );
-    checktest ( test_distdrop_point_line_elev1() );
-    print_result ();
-    printf ( "\n\n    Print rdrop_up...\n" );
-    print_array_float( rdrop_up );
-    printf ( "\n\n    Print rdrop_dw...\n" );
-    print_array_float( rdrop_dw ); */
+    /* Read data */
+    short **point = read_short_data("points.txt", &nrows, &ncols);
+    short **line = read_short_data("lines.txt", &nrows, &ncols);
+    float **elev = read_float_data("elev.txt", &nrows, &ncols);
 
     printf ( "\n\n\nTest distdrop: line-area-elev2\n" );
     printf ( "===================================\n\n" );
-    checktest ( test_distdrop_point_line_elev2() );
-    print_result ();
+    printf ( "\n\n    Print points...\n" );
+    print_array( point, TYPE_SHORT, nrows, ncols);
+    printf ( "\n\n    Print lines...\n" );
+    print_array(line, TYPE_SHORT, nrows, ncols);
+    printf ( "\n\n    Print elevation...\n" );
+    print_array(elev, TYPE_FLOAT, nrows, ncols);
+
+    short **rdir = read_short_data("null.txt", &nrows, &ncols);
+    float **rdist = read_float_data("null.txt", &nrows, &ncols);
+    float **rdrop_up = read_float_data("null.txt", &nrows, &ncols);
+    float **rdrop_dw = read_float_data("null.txt", &nrows, &ncols);
+    short **not_used = read_short_data("ones.txt", &nrows, &ncols);
+
+    distdrop( movements, point, line, elev,
+              rdist, rdir, not_used, rdrop_up, rdrop_dw, nrows, ncols );
+
+    printf ( "\n\n    Print rdir...\n" );
+    print_dir(rdir, nrows, ncols);
+    printf ( "\n\n    Print rdist...\n" );
+    print_array(rdist, TYPE_FLOAT, nrows, ncols);
     printf ( "\n\n    Print rdrop_up...\n" );
-    print_array_float( rdrop_up );
+    print_array(rdrop_up, TYPE_FLOAT, nrows, ncols );
     printf ( "\n\n    Print rdrop_dw...\n" );
-    print_array_float( rdrop_dw );
-    
-    return 0;
+    print_array(rdrop_dw, TYPE_FLOAT, nrows, ncols);
 }
-
-
 
 int main()
 {
-    all_tests();
+    /*test_list();*/
+    test_distdrop_point_line_elev2();
     return 0;
 }
 

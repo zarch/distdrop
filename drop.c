@@ -5,9 +5,8 @@
 # define M_SQRT2        1.41421356237309504880  /* sqrt(2) */
 
 
-/* global */
-int NROWS, NCOLS;
-int NULL_MAP, NULL_NEIG;
+#define NULL_MAP 0
+#define NULL_NEIG 0
 
 /*
  *
@@ -34,7 +33,7 @@ move movements[NMV] = {
 
 int neighbours[NMV][2];
 
-list * get_not_null ( short int ( *map ) [NCOLS] )
+list * get_not_null ( short int **map, int nrows, int ncols)
 {
     /*
      * Return a pointer to a list of couple (x, y) with not null values
@@ -50,10 +49,10 @@ list * get_not_null ( short int ( *map ) [NCOLS] )
     list *not_null = create_empty_list();
 
     /* Analyse each cell in the map */
-    for ( row = 0; row < NROWS; row++ )
+    for ( row = 0; row < nrows; row++ )
     {
         /* G_percent ( row, window.rows, 10 ); */
-        for ( col = 0; col < NCOLS; col++ )
+        for ( col = 0; col < ncols; col++ )
         {
             /* printf("pixel: %d,%d; map value: %d\n", \
              *        row, col, map[row][col]); */
@@ -68,26 +67,12 @@ list * get_not_null ( short int ( *map ) [NCOLS] )
     return not_null;
 }
 
-int print_array_short( short int ( *map ) [NCOLS] )
+int print_dir( short int **map, int nrows, int ncols)
 {
     unsigned int row, col;
-    for ( row = 0; row < NROWS; row++ )
+    for ( row = 0; row < nrows; row++ )
     {
-        for ( col = 0; col < NCOLS; col++ )
-        {
-            printf(" %d", map[row][col]);
-        }
-        printf("\n");
-    }
-    return 0;
-}
-
-int print_dir( short int ( *map ) [NCOLS] )
-{
-    unsigned int row, col;
-    for ( row = 0; row < NROWS; row++ )
-    {
-        for ( col = 0; col < NCOLS; col++ )
+        for ( col = 0; col < ncols; col++ )
         {
             switch(map[row][col])
             {
@@ -108,36 +93,35 @@ int print_dir( short int ( *map ) [NCOLS] )
     return 0;
 }
 
-int print_array_double( double ( *map ) [NCOLS] )
+int print_array(void *map, int type, int nrows, int ncols)
 {
+    short **sa = (short **)map;
+    int **ia = (int **)map;
+    float **fa = (float **)map;
+    double **da = (double **)map;
+
     unsigned int row, col;
-    for ( row = 0; row < NROWS; row++ )
+
+    for ( row = 0; row < nrows; row++ )
     {
-        for ( col = 0; col < NCOLS; col++ )
+        for ( col = 0; col < ncols; col++ )
         {
-            printf(" %.2f", map[row][col]);
+            if(type == TYPE_SHORT)
+                printf(" %i", sa[row][col]);
+            if(type == TYPE_INT)
+                printf(" %i", ia[row][col]);
+            if(type == TYPE_FLOAT)
+                printf(" %.2f", fa[row][col]);
+            if(type == TYPE_DOUBLE)
+                printf(" %.2f", da[row][col]);
         }
         printf("\n");
     }
     return 0;
 }
 
-int print_array_float( float ( *map ) [NCOLS] )
-{
-    unsigned int row, col;
-    for ( row = 0; row < NROWS; row++ )
-    {
-        for ( col = 0; col < NCOLS; col++ )
-        {
-            printf(" %+.2f", map[row][col]);
-        }
-        printf("\n");
-    }
-    return 0;
-}
 
-
-int up_neighbours ( int px, int py, move *movements)
+int up_neighbours ( int px, int py, move *movements, int nrows, int ncols)
 {
     /*
      * Function that return a pointer to a neighbours array
@@ -151,7 +135,7 @@ int up_neighbours ( int px, int py, move *movements)
         neighbours[row][1] = py + movements[row].mv[1];
         /* Are neighbours in the region? */
         if ( neighbours[row][0]<0     || neighbours[row][1]<0 ||
-                neighbours[row][0]>=NROWS || neighbours[row][1]>=NCOLS )
+                neighbours[row][0]>=nrows || neighbours[row][1]>=ncols )
         {
             /*set neighbour value to NULL */
             neighbours[row][0] = NULL_NEIG;
@@ -162,25 +146,18 @@ int up_neighbours ( int px, int py, move *movements)
     return 0;
 }
 
-int set_globals(int nrows, int ncols, int null_map, int null_neig)
-{
-    NROWS = nrows;
-    NCOLS = ncols;
-    NULL_MAP = null_map;
-    NULL_NEIG = null_neig;
-    return 0;
-}
-
 int execute ( move   *movements,
               list   *points,
-              short  ( *road ) [NCOLS],
-              short  ( *domain ) [NCOLS],
-              float  ( *elevation ) [NCOLS],
-              double ( *rdist ) [NCOLS],
-              short  ( *rdir ) [NCOLS],
-              short  ( *not_used ) [NCOLS],
-              float  ( *rdrop_up ) [NCOLS],
-              float  ( *rdrop_dw ) [NCOLS])
+              short  **road,
+              short  **domain,
+              float  **elevation,
+              float **rdist,
+              short  **rdir,
+              short  **not_used,
+              float  **rdrop_up,
+              float  **rdrop_dw,
+              int nrows,
+              int ncols)
 {
     int i, n, nx, ny, px, py, n_last, p_last;
     /* short value; */
@@ -191,7 +168,7 @@ int execute ( move   *movements,
     short *pnot_used;
     float *nelev, *pelev, drop;
     float *ndrop_up, *ndrop_dw, *pdrop_up, *pdrop_dw;
-    double *ndist, *pdist, new_dist;
+    float *ndist, *pdist, new_dist;
 
     list *origin_list = create_empty_list();
     /* initialize the row */
@@ -226,7 +203,7 @@ int execute ( move   *movements,
         if (proad[py] == 1){ pdir[py] = -1;}
 
         /* update global variable of pixel: `neighbours` */
-        up_neighbours ( px, py, movements );
+        up_neighbours ( px, py, movements, nrows, ncols );
         for ( n = 0; n < NMV ; n++ )
         {
             nx = neighbours[n][0];
@@ -314,24 +291,26 @@ int execute ( move   *movements,
     if (origin_list->length != 0 )
     {
         execute( movements, origin_list, road, domain, elevation, rdist, rdir,
-                 not_used, rdrop_up, rdrop_dw );
+                 not_used, rdrop_up, rdrop_dw, nrows, ncols );
     }
     return 0;
 }
 
 int distdrop(move   *movements,
-             short  ( *road ) [NCOLS],
-             short  ( *domain ) [NCOLS],
-             float  ( *elevation ) [NCOLS],
-             double ( *rdist ) [NCOLS],
-             short  ( *rdir ) [NCOLS],
-             short  ( *not_used ) [NCOLS],
-             float  ( *rdrop_up ) [NCOLS],
-             float  ( *rdrop_dw ) [NCOLS])
+             short  **road,
+             short  **domain,
+             float  **elevation,
+             float **rdist,
+             short  **rdir,
+             short  **not_used,
+             float  **rdrop_up,
+             float  **rdrop_dw,
+             int nrows,
+             int ncols)
 {
     /* printf ( "    Get not null...\n" ); */
-    list *road_points = get_not_null ( road );
+    list *road_points = get_not_null ( road , nrows, ncols);
     execute( movements, road_points, road, domain, elevation,
-             rdist, rdir, not_used, rdrop_up, rdrop_dw );
+             rdist, rdir, not_used, rdrop_up, rdrop_dw, nrows, ncols);
     return 0;
 }
