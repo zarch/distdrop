@@ -93,6 +93,7 @@ int print_dir( short int **map, int nrows, int ncols)
     return 0;
 }
 
+
 int print_array(void *map, int type, int nrows, int ncols)
 {
     short **sa = (short **)map;
@@ -151,7 +152,7 @@ int execute ( move   *movements,
               short  **road,
               short  **domain,
               float  **elevation,
-              float **rdist,
+              float  **rdist,
               short  **rdir,
               short  **not_used,
               float  **rdrop_up,
@@ -300,7 +301,7 @@ int distdrop(move   *movements,
              short  **road,
              short  **domain,
              float  **elevation,
-             float **rdist,
+             float  **rdist,
              short  **rdir,
              short  **not_used,
              float  **rdrop_up,

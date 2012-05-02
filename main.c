@@ -35,24 +35,25 @@ static int test_list()
     return 0;
 }
 
-static void test_distdrop_point_line_elev2()
+static void test_distdrop(char *road, char *domain, char *elevation)
 {
     int nrows, ncols;
 
     /* Read data */
-    short **point = read_short_data("points.txt", &nrows, &ncols);
-    short **line = read_short_data("lines.txt", &nrows, &ncols);
-    float **elev = read_float_data("elev.txt", &nrows, &ncols);
+    short **point = read_short_data(road, &nrows, &ncols);
+    short **line = read_short_data(domain, &nrows, &ncols);
+    float **elev = read_float_data(elevation, &nrows, &ncols);
 
-    printf ( "\n\n\nTest distdrop: line-area-elev2\n" );
-    printf ( "===================================\n\n" );
-    printf ( "\n\n    Print points...\n" );
+    printf ( "\n\n\nTest distdrop: %s - %s - %s\n", road, domain, elevation );
+    printf ( "==========================================================\n\n" );
+    printf ( "\n\n    Print %s...\n", road );
     print_array( point, TYPE_SHORT, nrows, ncols);
-    printf ( "\n\n    Print lines...\n" );
+    printf ( "\n\n    Print %s...\n", domain );
     print_array(line, TYPE_SHORT, nrows, ncols);
-    printf ( "\n\n    Print elevation...\n" );
+    printf ( "\n\n    Print %s...\n", elevation );
     print_array(elev, TYPE_FLOAT, nrows, ncols);
 
+    /* Initialize empty array */
     short **rdir = read_short_data("null.txt", &nrows, &ncols);
     float **rdist = read_float_data("null.txt", &nrows, &ncols);
     float **rdrop_up = read_float_data("null.txt", &nrows, &ncols);
@@ -72,10 +73,19 @@ static void test_distdrop_point_line_elev2()
     print_array(rdrop_dw, TYPE_FLOAT, nrows, ncols);
 }
 
+
 int main()
 {
     /*test_list();*/
-    test_distdrop_point_line_elev2();
+
+    /* test distdrop algorithm */
+    /*             road         domain       elevation */
+    test_distdrop("points.txt", "lines.txt",  "elev.txt");
+    test_distdrop("points.txt", "circle.txt", "elev.txt");
+    test_distdrop("points.txt", "area.txt",   "elev.txt");
+    
+    test_distdrop("lines.txt",  "lines.txt",  "elev.txt");
+    test_distdrop("lines.txt",  "area.txt",   "elev.txt");
     return 0;
 }
 

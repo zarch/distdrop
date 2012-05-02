@@ -38,7 +38,7 @@ static void read_grass_header(FILE *f, int *nrows, int *ncols) {
     /* cols */
     fscanf(f, "%s %i", buff, ncols);
 
-    printf(" rows %i cols %i \n", *nrows, *ncols);
+    /* printf(" rows %i cols %i \n", *nrows, *ncols); */
 }
 
 /* Read short data from a grass raster ascii file */
@@ -56,7 +56,7 @@ short **read_short_data(const char* filename, int *nrows, int *ncols)
         exit(1);
     }
 
-    printf("Read file %s\n", filename);
+    /* printf("Read file %s\n", filename); */
 
     read_grass_header(f, nrows, ncols);
 
@@ -99,7 +99,7 @@ float **read_float_data(const char* filename, int *nrows, int *ncols)
         exit(1);
     }
 
-    printf("Read file %s\n", filename);
+    /* printf("Read file %s\n", filename); */
 
     read_grass_header(f, nrows, ncols);
 

@@ -24,34 +24,35 @@ extern list *get_not_null ( short int **, int, int);
 
 extern int print_dir(short int **, int, int) ;
 extern int print_array (void*, int, int, int) ;
+
 int up_neighbours ( int px, int py, move *movements, int nrows, int ncols);
 
 /* nrows, ncols  nmv, null_map, null_neig */
 extern int set_globals (int, int, int, int ) ;
                  
-extern int execute  ( move *,            /* list of movements */
-                      list *,            /* list of points */
+extern int execute  ( move *,   /* list of movements */
+                      list *,   /* list of points */
                       short **, /* road */
                       short **, /* domain */
                       float **, /* elevation */
-                      float **,/* rdist */
+                      float **, /* rdist */
                       short **, /* rdir */
                       short **, /* not_used */
                       float **, /* drop_up */
-                      float **,  /* drop_dw */
-                      int, /* number of rows */
-                      int /* number of cols */);
+                      float **, /* drop_dw */
+                      int,      /* number of rows */
+                      int       /* number of cols */);
 
-extern int distdrop ( move *,            /* list of movements */
+extern int distdrop ( move *,   /* list of movements */
                       short **, /* road */
                       short **, /* domain */
                       float **, /* elevation */
-                      float **,/* rdist */
+                      float **, /* rdist */
                       short **, /* rdid */
                       short **, /* not_used */
                       float **, /* drop_up */
-                      float **,  /* drop_dw */
-                      int, /* number of rows */
-                      int /* number of cols */);
+                      float **, /* drop_dw */
+                      int,      /* number of rows */
+                      int       /* number of cols */);
 
 #endif  /* DROP_H */
