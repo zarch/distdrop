@@ -162,6 +162,42 @@ int up_neighbours ( int px, int py, move *movements, int nrows, int ncols)
     return 0;
 }
 
+void up_drop(int py, int ny,
+             float *nelev, float *pelev,
+             float *pdrop_up, float *pdrop_dw,
+             float *ndrop_up, float *ndrop_dw)
+{
+    float drop = nelev[ny] - pelev[py];
+    /* check if drop is positive or negative */
+    if (drop >= 0)
+    {
+        ndrop_up[ny] = pdrop_up[py] + drop;
+        ndrop_dw[ny] = pdrop_dw[py];
+    }
+    else
+    {
+        ndrop_up[ny] = pdrop_up[py];
+        ndrop_dw[ny] = pdrop_dw[py] + drop;
+    }
+}
+
+
+void up_maps_rows( int row, short  **road, float  **rdist, short  **rdir,
+                   short **not_used, float **elevation,
+                   float  **rdrop_up, float  **rdrop_dw,
+                   short *proad, float *pdist, short *pdir, short *pnot_used,
+                   float *pelev, float *pdrop_up, float *pdrop_dw)
+{
+    /* load row of different maps */
+    proad = road[row];
+    pdist = rdist[row];
+    pdir = rdir[row];
+    pnot_used = not_used[row];
+    pelev = elevation[row];
+    pdrop_up = rdrop_up[row];
+    pdrop_dw = rdrop_dw[row];
+}
+
 list **execute ( move   *movements,
                  list   *rows,
                  list   **points,
@@ -183,7 +219,7 @@ list **execute ( move   *movements,
     short *ndomain, *ndir, *nnot_used, *nroad;
     short *proad, *pdir;
     short *pnot_used;
-    float *nelev, *pelev, drop;
+    float *nelev, *pelev;
     float *ndrop_up, *ndrop_dw, *pdrop_up, *pdrop_dw;
     float *ndist, *pdist, new_dist;
 
@@ -207,10 +243,11 @@ list **execute ( move   *movements,
             if (px != p_last)
             {
                 p_last = px;
-                /* using grass function `get_row`
-                * load row of different maps */
+                /*up_maps_rows( p_last, road, rdist, rdir, not_used, elevation,
+                              rdrop_up, rdrop_dw, proad, pdist, pdir, pnot_used,
+                              pelev, pdrop_up, pdrop_dw); */
+                /* load row of different maps */
                 proad = road[p_last];
-                /* pdomain = domain[p_last]; */
                 pdist = rdist[p_last];
                 pdir = rdir[p_last];
                 pnot_used = not_used[p_last];
@@ -263,18 +300,8 @@ list **execute ( move   *movements,
                                 ndir[ny] = movements[n].dir;
                                 nnot_used[ny] = 1;
                                 add_point_to_array_of_list(nx, ny, origin_list);
-                                drop = nelev[ny] - pelev[py];
-                                /* check if drop is positive or negative */
-                                if (drop >= 0)
-                                {
-                                    ndrop_up[ny] = pdrop_up[py] + drop;
-                                    ndrop_dw[ny] = pdrop_dw[py];
-                                }
-                                else
-                                {
-                                    ndrop_up[ny] = pdrop_up[py];
-                                    ndrop_dw[ny] = pdrop_dw[py] + drop;
-                                }
+                                up_drop(py, ny, nelev, pelev,
+                                        pdrop_up, pdrop_dw, ndrop_up, ndrop_dw);
                             }
                         }
                         else
@@ -282,18 +309,8 @@ list **execute ( move   *movements,
                             /* compute distance */
                             ndist[ny] = pdist[py] + movements[n].dist;
                             ndir[ny]   = movements[n].dir;
-                            drop = nelev[ny] - pelev[py];
-                            /* check if drop is positive or negative */
-                            if (drop >= 0)
-                            {
-                                ndrop_up[ny] = pdrop_up[py] + drop;
-                                ndrop_dw[ny] = pdrop_dw[py];
-                            }
-                            else
-                            {
-                                ndrop_up[ny] = pdrop_up[py];
-                                ndrop_dw[ny] = pdrop_dw[py] + drop;
-                            }
+                            up_drop(py, ny, nelev, pelev,
+                                        pdrop_up, pdrop_dw, ndrop_up, ndrop_dw);
                             /* check if is already compute */
                             if (nnot_used[ny])
                             {
