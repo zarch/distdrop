@@ -24,69 +24,28 @@ void add_point_to_list ( int row, int col, list *l )
     l->length += 1;
 }
 
-void add_point_to_order_list ( int row, int col, list *l )
+void add_point_to_array_of_list ( int row, int col, list **l )
 {
-    int i;
-    int insert = 0;
-    elem *e_prev;
-    elem *e_next;
-    elem *e_new = malloc ( sizeof ( elem ) );
+    elem *e = malloc ( sizeof ( elem ) );
 
-    e_new->point.row = row;
-    e_new->point.col = col;
-    e_new->next = NULL;
+    e->point.row = row;
+    e->point.col = col;
+    e->next = NULL;
 
     /* set the first point if list is empty, otherwise */
     /* update the link from the last element to new point */
-    if ( l->length == 0 )
-    {
-        l->first = e_new;
-        /* update the last in the list */
-        l->last = e_new;
-    }
+    if ( l[row]->length == 0 )
+        l[row]->first = e;
     else
-    {
-        /* check if the new el is in the same or later row of the last in list */
-        if ( e_new->point.row >= l->last->point.row )
-        {
-            /* update the last element in the list */
-            l->last->next = e_new;
-            /* update the last in the list */
-            l->last = e_new;
-        }
-        /* check if the new el is in a row before the first in the list */
-        else if ( e_new->point.row <= l->first->point.row )
-        {
-            /* update the the new element insert as next the first in the list */
-            e_new->next = l->first;
-            /* update the first el in the list */
-            l->first = e_new;
-        }
-        /* If is not in the first and is not in the last, is in the middle */
-        else
-        {
-            /* go through the list and find the right position */
-            for ( i = 0, e_prev = l->first; i < l->length-1; i++ )
-            {
-                e_next = e_prev->next;
-                if ( e_new->point.row <= e_next->point.row )
-                {
-                    /* Insert between */
-                    e_prev->next = e_new;
-                    e_new->next = e_next;
-                    break;
-                }
-                else
-                {
-                    /* Update previous element with the next */
-                    e_prev = e_next;
-                }
-            }
-        }
-    }
+        l[row]->last->next = e;
+
+    /* update the last in the list */
+    l[row]->last = e;
+
     /* update the length attribute */
-    l->length += 1;
+    l[row]->length += 1;
 }
+
 
 void populate ( int nrows, list *l )
 {
@@ -95,23 +54,19 @@ void populate ( int nrows, list *l )
         add_point_to_list ( row, 0, l );
 }
 
-void populate_inverse_rows_cols ( int nrows, int ncols, list *l )
+
+
+list **create_empty_array_of_list( int nrows )
 {
-    int row;
-    int col;
-    for ( col = 0; col < ncols; col++ )
-        for ( row = 0; row < nrows; row++ )
-            add_point_to_list ( row, col, l );
+    int i;
+    list **a;
+    a = malloc ((long unsigned int)nrows * sizeof ( list * ) );
+    for(i = 0; i < nrows; i++){
+        a[i] = create_empty_list();
+    }
+    return a;
 }
 
-void order_populate_inverse_rows_cols ( int nrows, int ncols, list *l )
-{
-    int row;
-    int col;
-    for ( col = 0; col < ncols; col++ )
-        for ( row = 0; row < nrows; row++ )
-            add_point_to_order_list ( row, col, l );
-}
 
 list * create_empty_list()
 {
@@ -119,6 +74,27 @@ list * create_empty_list()
     l->length = 0;
     l->first = l->last = NULL;
     return l;
+}
+
+void print_array_of_list ( list **l, int nrows )
+{
+    int i,j;
+    elem *e;
+    /* elem *p; */
+
+    for ( i = 0; i < nrows; i++ )
+    {
+        printf("\nrow: %d, length: %d\n", i, l[i]->length);
+        if (l[i]->length != 0){
+            for ( j = 0, e = l[i]->first; j < l[i]->length; j++ )
+            {
+                printf ( "%d ", e->point.col );
+                /* p = e; */
+                e = e->next;
+                /* free(p); */
+            }
+        }
+    }
 }
 
 void print_list ( list *l )

@@ -1,3 +1,33 @@
+
+/****************************************************************************
+ *
+ * MODULE:       r.example
+ * AUTHOR(S):    Pietro Zambelli - s/ /./ pietro zambelli at ing uni tn it
+ *               with hints from: Sören Gebbert - soerengebbert at googlemail com
+ * PURPOSE:      Compute the distance and the elevation different of a pixel,
+ *               between the pixel and the closest road points
+ *
+ * COPYRIGHT:    (C) 2002, 2012-2012 by the GRASS Development Team
+ *
+ *               This program is free software under the GNU General Public
+ *               License (>=v2). Read the file COPYING that comes with GRASS
+ *               for details.
+ *
+ *****************************************************************************/
+/*
+#include <grass/gis.h>
+#include <grass/raster.h>
+#include <grass/glocale.h>
+*/
+
+/*
+ * global function declaration
+ */
+/*extern CELL f_c(CELL);
+extern FCELL f_f(FCELL);
+extern DCELL f_d(DCELL);
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "ascii.h"
@@ -15,25 +45,27 @@
  *
  */
 
-static void test_distdrop_point_line_elev2();
-static int test_list();
+static void test_distdrop();
+static int test_array_of_list();
 
-static int test_list()
+
+
+static int test_array_of_list()
 {
-    list *l = create_empty_list();
-    populate_inverse_rows_cols ( 10, 3, l );
-    print_list ( l );
-    free_list ( l );
-
-    /* test the function to add element in a order list */
-    printf ( "\nTest the function to add element in a order list\n\n" );
-
-    list *o = create_empty_list();
-    order_populate_inverse_rows_cols ( 10, 3, o );
-    print_list ( o );
-    free_list ( o );
+    int nrows = 10;
+    list **a = create_empty_array_of_list( nrows );
+    add_point_to_array_of_list(0, 0, a);
+    add_point_to_array_of_list(0, 1, a);
+    add_point_to_array_of_list(0, 2, a);
+    add_point_to_array_of_list(1, 0, a);
+    add_point_to_array_of_list(1, 1, a);
+    add_point_to_array_of_list(1, 3, a);
+    print_array_of_list( a, 10 );
+    list *rows = get_row_not_null(a, nrows);
+    print_list ( rows );
     return 0;
 }
+
 
 static void test_distdrop(char *road, char *domain, char *elevation)
 {
@@ -77,7 +109,8 @@ static void test_distdrop(char *road, char *domain, char *elevation)
 int main()
 {
     /*test_list();*/
-
+    /*test_array_of_list();*/
+    
     /* test distdrop algorithm */
     /*             road         domain       elevation */
     test_distdrop("points.txt", "lines.txt",  "elev.txt");
@@ -86,6 +119,7 @@ int main()
     
     test_distdrop("lines.txt",  "lines.txt",  "elev.txt");
     test_distdrop("lines.txt",  "area.txt",   "elev.txt");
+
     return 0;
 }
 

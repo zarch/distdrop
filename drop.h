@@ -20,7 +20,8 @@ typedef struct __move__
 extern move movements[NMV];
 
 /* global functions declaration */
-extern list *get_not_null ( short int **, int, int);
+extern list **get_not_null ( short int **, int, int);
+extern list *get_row_not_null( list **, int );
 
 extern int print_dir(short int **, int, int) ;
 extern int print_array (void*, int, int, int) ;
@@ -30,18 +31,21 @@ int up_neighbours ( int px, int py, move *movements, int nrows, int ncols);
 /* nrows, ncols  nmv, null_map, null_neig */
 extern int set_globals (int, int, int, int ) ;
                  
-extern int execute  ( move *,   /* list of movements */
-                      list *,   /* list of points */
-                      short **, /* road */
-                      short **, /* domain */
-                      float **, /* elevation */
-                      float **, /* rdist */
-                      short **, /* rdir */
-                      short **, /* not_used */
-                      float **, /* drop_up */
-                      float **, /* drop_dw */
-                      int,      /* number of rows */
-                      int       /* number of cols */);
+
+
+extern list **execute  ( move *,   /* list of movements */
+                         list *,   /* list of rows */
+                         list **,  /* list of points */
+                         short **, /* road */
+                         short **, /* domain */
+                         float **, /* elevation */
+                         float **, /* rdist */
+                         short **, /* rdir */
+                         short **, /* not_used */
+                         float **, /* drop_up */
+                         float **, /* drop_dw */
+                         int,      /* number of rows */
+                         int       /* number of cols */);
 
 extern int distdrop ( move *,   /* list of movements */
                       short **, /* road */
@@ -54,5 +58,7 @@ extern int distdrop ( move *,   /* list of movements */
                       float **, /* drop_dw */
                       int,      /* number of rows */
                       int       /* number of cols */);
+
+
 
 #endif  /* DROP_H */

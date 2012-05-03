@@ -32,12 +32,12 @@ typedef struct __list__
 
 /* global functions declaration */
 extern list *create_empty_list ( void );
+extern list **create_empty_array_of_list ( int ); /* */
 extern void add_point_to_list ( int, int, list * );
-extern void add_point_to_order_list ( int, int, list * );
+extern void add_point_to_array_of_list ( int, int, list ** );
 extern void populate ( int, list * );
-extern void populate_inverse_rows_cols ( int, int, list * );
-extern void order_populate_inverse_rows_cols ( int, int, list * );
 extern void print_list ( list * );
+extern void print_array_of_list ( list **, int );
 extern void free_list ( list * );
 
 #endif  /* LIST_H */
