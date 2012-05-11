@@ -1,4 +1,4 @@
-
+﻿
 /****************************************************************************
  *
  * MODULE:       r.example
@@ -14,8 +14,8 @@
  *               for details.
  *
  *****************************************************************************/
-/*
-#include <grass/gis.h>
+
+/*#include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
 */
@@ -40,16 +40,17 @@ extern DCELL f_d(DCELL);
  * $ clang main.c -fsyntax-only
  * $ gcc -Wall -pedantic -std=c11 -c main.c
  * $ gcc -Wall -pedantic -std=c99 -c main.c
+ * $ gcc -O -Wall -W -pedantic -ansi -std=c99 -o pixel_by_pixel pixel_by_pixe
  * $ valgrind --leak-check=full --show-reachable=yes ./distdrop
  *
  *
  */
 
 static void test_distdrop();
-static int test_array_of_list();
+//static int test_array_of_list();
 
 
-
+/*
 static int test_array_of_list()
 {
     int nrows = 10;
@@ -65,6 +66,7 @@ static int test_array_of_list()
     print_list ( rows );
     return 0;
 }
+*/
 
 
 static void test_distdrop(char *road, char *domain, char *elevation)
@@ -87,14 +89,18 @@ static void test_distdrop(char *road, char *domain, char *elevation)
 
     /* Initialize empty array */
     short **rdir = read_short_data("null.txt", &nrows, &ncols);
-    float **rdist = read_float_data("null.txt", &nrows, &ncols);
+    // merge road and domain map
+    float **rdist = get_input_map ( point, line, &nrows, &ncols );
     float **rdrop_up = read_float_data("null.txt", &nrows, &ncols);
     float **rdrop_dw = read_float_data("null.txt", &nrows, &ncols);
-    short **not_used = read_short_data("ones.txt", &nrows, &ncols);
+    //short **not_used = read_short_data("ones.txt", &nrows, &ncols);
 
-    distdrop( movements, point, line, elev,
-              rdist, rdir, not_used, rdrop_up, rdrop_dw, nrows, ncols );
+    printf("Before enter in distdrop\n");
+    distdrop ( movements, rdist, elev, rdrop_up, rdrop_dw,
+               rdir, nrows, ncols );
+    printf("\n\n");
 
+    print_array(rdir, TYPE_SHORT, nrows, ncols);
     printf ( "\n\n    Print rdir...\n" );
     print_dir(rdir, nrows, ncols);
     printf ( "\n\n    Print rdist...\n" );
@@ -103,20 +109,29 @@ static void test_distdrop(char *road, char *domain, char *elevation)
     print_array(rdrop_up, TYPE_FLOAT, nrows, ncols );
     printf ( "\n\n    Print rdrop_dw...\n" );
     print_array(rdrop_dw, TYPE_FLOAT, nrows, ncols);
+
+    // free memory
+    free(point);
+    free(line);
+    free(elev);
+    free(rdir);
+    free(rdist);
+    free(rdrop_up);
+    free(rdrop_dw);
 }
 
 
 int main()
 {
-    /*test_list();*/
-    /*test_array_of_list();*/
-    
-    /* test distdrop algorithm */
-    /*             road         domain       elevation */
+    //test_list();
+    //test_array_of_list();
+
+    // test distdrop algorithm
+    //             road         domain       elevation
     test_distdrop("points.txt", "lines.txt",  "elev.txt");
     test_distdrop("points.txt", "circle.txt", "elev.txt");
     test_distdrop("points.txt", "area.txt",   "elev.txt");
-    
+
     test_distdrop("lines.txt",  "lines.txt",  "elev.txt");
     test_distdrop("lines.txt",  "area.txt",   "elev.txt");
 

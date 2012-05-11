@@ -20,45 +20,38 @@ typedef struct __move__
 extern move movements[NMV];
 
 /* global functions declaration */
-extern list **get_not_null ( short int **, int, int);
-extern list *get_row_not_null( list **, int );
-
 extern int print_dir(short int **, int, int) ;
 extern int print_array (void*, int, int, int) ;
 
-int up_neighbours ( int px, int py, move *movements, int nrows, int ncols);
+//                             road     domain   nrows ncols
+extern float **get_input_map ( short**, short**, int*, int* );
 
-/* nrows, ncols  nmv, null_map, null_neig */
-extern int set_globals (int, int, int, int ) ;
-                 
+extern int *get_neighbours ( int *,  //px,
+                             int *,  //py,
+                             move *, //movements,
+                             int **,  //neighbours[NMV][2],
+                             int *,  //nrows,
+                             int *); //ncols )
 
 
-extern list **execute  ( move *,   /* list of movements */
-                         list *,   /* list of rows */
-                         list **,  /* list of points */
-                         short **, /* road */
-                         short **, /* domain */
-                         float **, /* elevation */
-                         float **, /* rdist */
-                         short **, /* rdir */
-                         short **, /* not_used */
-                         float **, /* drop_up */
-                         float **, /* drop_dw */
-                         int,      /* number of rows */
-                         int       /* number of cols */);
+extern int all_pixel ( move   *,  // list of movements
+                       short  *,  // todo bool array rows
+                       float  **,  // rdist
+                       float  **, // elevation,
+                       short  **, // rdir,
+                       float  **, // rdrop_up,
+                       float  **, // rdrop_dw,
+                       int,       // nrows,
+                       int);      // ncols
 
-extern int distdrop ( move *,   /* list of movements */
-                      short **, /* road */
-                      short **, /* domain */
-                      float **, /* elevation */
-                      float **, /* rdist */
-                      short **, /* rdid */
-                      short **, /* not_used */
-                      float **, /* drop_up */
-                      float **, /* drop_dw */
-                      int,      /* number of rows */
-                      int       /* number of cols */);
-
+extern int distdrop ( move   *,  // movements,
+                      float  **, //rdist,
+                      float  **, //elevation,
+                      float  **, //rdrop_up,
+                      float  **, //rdrop_dw,
+                      short  **, //rdir,
+                      int,       // nrows,
+                      int);      // ncols
 
 
 #endif  /* DROP_H */

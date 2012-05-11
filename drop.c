@@ -1,12 +1,15 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
-#include "list.h"
 #include "drop.h"
-# define M_SQRT2        1.41421356237309504880  /* sqrt(2) */
 
 
+#define M_SQRT2        1.41421356237309504880  /* sqrt(2) */
 #define NULL_MAP 0
-#define NULL_NEIG 0
+#define NULL_NEIG -999
+#define INPUT_DOMAIN 10000.0f
+#define INPUT_NOT_DOMAIN -1.0f
+#define INPUT_ROAD 0.0f
+
 
 /*
  *
@@ -14,12 +17,13 @@
  *
  */
 /* Movement & Direction
- -1 0 1
- |1|2|3| -1
- |4| |6|  0
- |7|8|9|  1
-*/
-move movements[NMV] = {
+ * -1 0 1
+ * |1|2|3| -1
+ * |4| |6|  0
+ * |7|8|9|  1
+ */
+move movements[NMV] =
+{
     /*  mv  |dir|dist          */
     {{ 1,  1}, 1, M_SQRT2},
     {{ 1,  0}, 2, 1},
@@ -31,355 +35,417 @@ move movements[NMV] = {
     {{-1, -1}, 9, M_SQRT2},
 };
 
-int neighbours[NMV][2];
-
-list **get_not_null ( short int **map, int nrows, int ncols)
+// utf8 symbols: ⬅ ⬆ ⬇ ⬈ ⬉ ⬊ ⬋ ⬚ ← ↑ → ↓ ↗ ↖ ↘ ↙ ⬛ ⬣
+int print_dir ( short int **map, int nrows, int ncols )
 {
-    /*
-     * Return a pointer to a list of couple (x, y) with not null values
-     *
-     *
-     * Look here for Array pointers and functions:
-     *
-     * https://gist.github.com/2419722
-     *
-     */
-    unsigned int row, col;
-    /* printf ( "Create an empty list\n" ); */
-    /* list *not_null = create_empty_array_of_list( nrows );*/
-    list **not_null = create_empty_array_of_list( nrows );
-
-    /* Analyse each cell in the map */
-    for ( row = 0; row < nrows; row++ )
+    for ( int row = 0; row < nrows; row++ )
     {
-        /* G_percent ( row, window.rows, 10 ); */
-        for ( col = 0; col < ncols; col++ )
+        printf("%d: ", row);
+        for ( int col = 0; col < ncols; col++ )
         {
-            /* printf("pixel: %d,%d; map value: %d\n", \
-             *        row, col, map[row][col]); */
-            if ( map[row][col] != NULL_MAP ) /* Rast_is_null_value( ) */
+            switch ( map[row][col] )
             {
-                /* add to a list */
-                /* printf("not_null, row: %d, col: %d", row, col); */
-                /* add_point_to_order_list ( row, col, not_null[row] ); */
-                add_point_to_array_of_list ( row, col, not_null );
+                case 0: printf ( "⬚" ); break;
+                case 1: printf ( "↖" ); break;
+                case 2: printf ( "↑" ); break;
+                case 3: printf ( "↗" ); break;
+                case 4: printf ( "←" ); break;
+                case 6: printf ( "→" ); break;
+                case 7: printf ( "↙" ); break;
+                case 8: printf ( "↓" ); break;
+                case 9: printf ( "↘" ); break;
+                case -1: printf ( "⬣" ); break;
             }
         }
-    }
-    return not_null;
-}
-
-list *get_row_not_null( list **points, int nrows )
-{
-    list *rows = create_empty_list();
-    int row;
-    for (row = 0; row < nrows; row++ )
-    {
-        if (points[row]->length != 0)
-            add_point_to_list(row, 0, rows);
-    }
-    return rows;
-}
-
-
-int print_dir( short int **map, int nrows, int ncols)
-{
-    unsigned int row, col;
-    for ( row = 0; row < nrows; row++ )
-    {
-        for ( col = 0; col < ncols; col++ )
-        {
-            switch(map[row][col])
-            {
-                case 0: printf(" ░ "); break;
-                case 1: printf(" ^\\"); break;
-                case 2: printf(" ↑ "); break;
-                case 3: printf(" /^"); break;
-                case 4: printf(" ← "); break;
-                case 6: printf(" → "); break;
-                case 7: printf(" _/"); break;
-                case 8: printf(" ↓ "); break;
-                case 9: printf(" \\_"); break;
-                case -1: printf(" ○ "); break;
-            }
-        }
-        printf("\n");
+        printf ( "\n" );
     }
     return 0;
 }
 
 
-int print_array(void *map, int type, int nrows, int ncols)
+
+int print_array ( void *map, int type, int nrows, int ncols )
 {
-    short **sa = (short **)map;
-    int **ia = (int **)map;
-    float **fa = (float **)map;
-    double **da = (double **)map;
+    short **sa = ( short ** ) map;
+    int **ia = ( int ** ) map;
+    float **fa = ( float ** ) map;
+    double **da = ( double ** ) map;
 
-    unsigned int row, col;
-
-    for ( row = 0; row < nrows; row++ )
+    for ( int row = 0; row < nrows; row++ )
     {
-        for ( col = 0; col < ncols; col++ )
+        printf("%d: ", row);
+        for ( int col = 0; col < ncols; col++ )
         {
-            if(type == TYPE_SHORT)
-                printf(" %i", sa[row][col]);
-            if(type == TYPE_INT)
-                printf(" %i", ia[row][col]);
-            if(type == TYPE_FLOAT)
-                printf(" %.2f", fa[row][col]);
-            if(type == TYPE_DOUBLE)
-                printf(" %.2f", da[row][col]);
+            if ( type == TYPE_SHORT )
+                printf ( " % i", sa[row][col] );
+            if ( type == TYPE_INT )
+                printf ( " % i", ia[row][col] );
+            if ( type == TYPE_FLOAT )
+                printf ( " % 4.2f", fa[row][col] );
+            if ( type == TYPE_DOUBLE )
+                printf ( " % 4.2f", da[row][col] );
         }
-        printf("\n");
+                printf ( "\n" );
     }
     return 0;
 }
 
+int **new_int_map (int *nrows, int *ncols, int* set_number )
+{
+    int    **new_map = ( int**    ) malloc ( *nrows * sizeof ( int *    ) );
+    if ( new_map == NULL )
+    {
+        fprintf ( stderr, "Unable allocate memory" );
+        exit ( 1 );
+    }
 
-int up_neighbours ( int px, int py, move *movements, int nrows, int ncols)
+    for ( int i = 0; i < *nrows; i++ )
+    {
+        //new_map[i] = ( short* ) calloc ( *ncols, sizeof ( short ) );
+        new_map[i] = ( int* ) malloc ( *ncols * sizeof ( int ) );
+        if ( new_map[i] == NULL )
+        {
+            fprintf ( stderr, "Unable allocate memory" );
+                      exit ( 1 );
+        }
+        if ( set_number != NULL )
+        {
+            for ( int j = 0; j < *ncols; j++ )
+            {
+                new_map[i] = set_number;
+            }
+        }
+    }
+    return new_map;
+
+}
+
+short **new_short_map ( int *nrows, int *ncols )
+{
+    //short **new_map = ( short** ) calloc ( *nrows, sizeof ( short * ) );
+    short **new_map = ( short** ) malloc ( *nrows * sizeof ( short * ) );
+
+    if ( new_map == NULL )
+    {
+        fprintf ( stderr, "Unable allocate memory" );
+        exit ( 1 );
+    }
+
+    for ( int i = 0; i < *nrows; i++ )
+    {
+        //new_map[i] = ( short* ) calloc ( *ncols, sizeof ( short ) );
+        new_map[i] = ( short* ) malloc ( *ncols * sizeof ( short ) );
+        if ( new_map[i] == NULL )
+        {
+            fprintf ( stderr, "Unable allocate memory" );
+                      exit ( 1 );
+        }
+    }
+    return new_map;
+}
+
+float **new_float_map ( int *nrows, int *ncols )
+{
+    //float **new_map = ( float** ) calloc ( *nrows, sizeof ( float * ) );
+    float **new_map = ( float** ) malloc ( *nrows * sizeof ( float * ) );
+
+    if ( new_map == NULL )
+    {
+        fprintf ( stderr, "Unable allocate memory" );
+        exit ( 1 );
+    }
+
+    for ( int i = 0; i < *nrows; i++ )
+    {
+    //new_map[i] = ( float* ) calloc ( *ncols, sizeof ( float ) );
+        new_map[i] = ( float* ) malloc ( *ncols * sizeof ( float ) );
+        if ( new_map[i] == NULL )
+        {
+            fprintf ( stderr, "Unable allocate memory" );
+                      exit ( 1 );
+        }
+    }
+    return new_map;
+}
+
+
+
+
+float **get_input_map ( short **road, short **domain, int *nrows, int *ncols )
+{
+    //
+    // Merge road and domain in one map
+    //
+    float **input = new_float_map ( nrows, ncols );
+
+    for ( int i = 0; i < *nrows; i++ )
+    {
+        /* get row */
+        short *r_road = road[i];
+        short *r_domain = domain[i];
+        float *r_input = input[i];
+
+        for ( int j = 0; j < *ncols; j++ )
+        {
+            r_input[j] = r_domain[j] != NULL_MAP ? INPUT_DOMAIN : INPUT_NOT_DOMAIN ;
+            if ( r_road[j] != NULL_MAP )
+            {
+                r_input[j] = INPUT_ROAD;
+            }
+        }
+    }
+    return input;
+}
+
+float **update_float_cache ( int *row, int *last_row, int *nrows,
+                             float **cache, float **map )
+{
+    /* TODO: save cache[0] into grass and free */
+    if ( *row - *last_row == 1 )
+    {
+        if ( *row > 1 && *row < *nrows-1 )
+        {
+            //map[*last_row - 1] = cache[0];
+            cache[0] = cache[1];
+            cache[1] = cache[2];
+            cache[2] = map[*row + 1]; // read row using get_row()
+        }
+        else if ( *row <= 1 )
+        {
+            cache[0] = *row == 0 ?  map[*row]: map[*row -1];
+            cache[1] = map[*row];
+            cache[2] = map[*row + 1];
+        }
+        else
+        {
+            // map[*last_row - 1] = cache[0];
+            cache[0] = cache[1];
+            cache[1] = map[*row]; // read the last
+            cache[2] = map[*row]; //NULL; // TODO: put the NULL pointer?
+        }
+    }
+    else
+    {
+        // save
+        //map[*last_row - 1] = cache[0];
+        //map[*last_row] = cache[1];
+        //map[*last_row + 1] = cache[2];
+        // read and load map row to the new cache
+        cache[0] = *row == 0? map[*row] : map[*row -1];
+        cache[1] = map[*row];
+        cache[2] = *row == *nrows ? map[*row] : map[*row + 1];
+    }
+    //printf("Final cache, row: %d:\n", *row);
+    //print_array(cache, TYPE_FLOAT, *nrows, 11);
+    return cache;
+}
+
+short **update_short_cache ( int *row, int *last_row, int *nrows,
+                             short **cache, short **map )
+{
+    /* TODO: save cache[0] into grass and free */
+    if ( *row - *last_row == 1 )
+    {
+        if ( *row > 1 || *row < *nrows-1 )
+        {
+            //map[*last_row - 1] = cache[0];
+            cache[0] = cache[1];
+            cache[1] = cache[2];
+            cache[2] = map[*row + 1];
+        }
+        else if ( *row <= 1 )
+        {
+            cache[0] = *row == 0 ? map[*row] : map[*row -1];
+            cache[1] = map[*row];
+            cache[2] = map[*row + 1];
+        }
+        else
+        {
+            //map[*row - 2] = cache[0];
+            cache[0] = cache[1];
+            cache[1] = map[*row];
+            cache[2] = map[*row];
+        }
+    }
+    else
+    {
+        // save
+        //map[*last_row - 1] = cache[0];
+        //map[*last_row] = cache[1];
+        //map[*last_row + 1] = cache[2];
+        // load map row to the new cache
+        cache[0] = map[*row -1];
+        cache[1] = map[*row];
+        cache[2] = map[*row + 1];
+    }
+    return cache;
+}
+
+
+
+int *get_neighbours ( int *px, int *py, move *movements, int **neighbours,
+                      int *nrows, int *ncols )
 {
     /*
      * Function that return a pointer to a neighbours array
      *
      */
-    int row;
-    /* printf ( "px:%d py:%d\n", px, py); */
-    for ( row = 0; row < sizeof(movements); row++ )
+    for ( int row = 0; row < ( int )sizeof ( movements ); row++ )
     {
-        neighbours[row][0] = px + movements[row].mv[0];
-        neighbours[row][1] = py + movements[row].mv[1];
-        /* Are neighbours in the region? */
-        if ( neighbours[row][0]<0     || neighbours[row][1]<0 ||
-                neighbours[row][0]>=nrows || neighbours[row][1]>=ncols )
+        // compute virtual row and col
+        int vrow = *px + movements[row].mv[0];
+        int vcol = *py + movements[row].mv[1];
+        // Are neighbours in the region?
+        if ( vrow<0  || vcol<0 || vrow>=*nrows || vcol>=*ncols )
         {
-            /*set neighbour value to NULL */
+            // set neighbour value to NULL
             neighbours[row][0] = NULL_NEIG;
             neighbours[row][1] = NULL_NEIG;
         }
-        /* printf ( "nx:%d ny:%d\n", neighbours[row][0], neighbours[row][1]); */
+        else
+        {
+            // set neighbour value
+            // I don't use vrow, because I use cache
+            // transform row from -1, 0, 1 to 0, 1, 2
+            neighbours[row][0] = movements[row].mv[0] + 1;
+            neighbours[row][1] = vcol;
+        }
+    //printf ( "nx:%d ny:%d\n", neighbours[row][0], neighbours[row][1]);
     }
     return 0;
 }
 
-void up_drop(int py, int ny,
-             float *nelev, float *pelev,
-             float *pdrop_up, float *pdrop_dw,
-             float *ndrop_up, float *ndrop_dw)
+
+int all_pixel ( move   *movements,
+                short  *redo_rows,
+                float  **rdist,
+                float  **elevation,
+                short  **rdir,
+                float  **rdrop_up,
+                float  **rdrop_dw,
+                int nrows,
+                int ncols )
 {
-    float drop = nelev[ny] - pelev[py];
-    /* check if drop is positive or negative */
-    if (drop >= 0)
+    int row_cache=3, nx, ny, count = 0, last_row=-1;
+    float new_dist, drop;
+
+    /* initialize cache, input and output cache */
+    float **elev_cache = new_float_map ( &row_cache, &ncols );
+    float **dist_cache = new_float_map ( &row_cache, &ncols );
+    short **dir_cache = new_short_map ( &row_cache, &ncols );
+    float **up_cache = new_float_map ( &row_cache, &ncols );
+    float **dw_cache = new_float_map ( &row_cache, &ncols );
+
+    // Initialize neighbours
+    int r=8,c=2;
+    int **neighbours = new_int_map ( &r, &c, NULL );
+
+    for ( int i = 0; i < nrows; i++ )
     {
-        ndrop_up[ny] = pdrop_up[py] + drop;
-        ndrop_dw[ny] = pdrop_dw[py];
-    }
-    else
-    {
-        ndrop_up[ny] = pdrop_up[py];
-        ndrop_dw[ny] = pdrop_dw[py] + drop;
-    }
-}
-
-
-void up_maps_rows( int row, short  **road, float  **rdist, short  **rdir,
-                   short **not_used, float **elevation,
-                   float  **rdrop_up, float  **rdrop_dw,
-                   short *proad, float *pdist, short *pdir, short *pnot_used,
-                   float *pelev, float *pdrop_up, float *pdrop_dw)
-{
-    /* load row of different maps */
-    proad = road[row];
-    pdist = rdist[row];
-    pdir = rdir[row];
-    pnot_used = not_used[row];
-    pelev = elevation[row];
-    pdrop_up = rdrop_up[row];
-    pdrop_dw = rdrop_dw[row];
-}
-
-list **execute ( move   *movements,
-                 list   *rows,
-                 list   **points,
-                 short  **road,
-                 short  **domain,
-                 float  **elevation,
-                 float  **rdist,
-                 short  **rdir,
-                 short  **not_used,
-                 float  **rdrop_up,
-                 float  **rdrop_dw,
-                 int nrows,
-                 int ncols)
-{
-    int r, c, n, nx, ny, px, py, n_last, p_last, row;
-    /* short value; */
-    elem *erow, *prow, *el, *prev;
-    /* define row maps for neighbours and pixel*/
-    short *ndomain, *ndir, *nnot_used, *nroad;
-    short *proad, *pdir;
-    short *pnot_used;
-    float *nelev, *pelev;
-    float *ndrop_up, *ndrop_dw, *pdrop_up, *pdrop_dw;
-    float *ndist, *pdist, new_dist;
-
-    list **origin_list = create_empty_array_of_list( nrows );
-    /* initialize the row */
-    n_last = -999;
-    p_last = -999;
-    /* start the cycle for each point in the list */
-    for ( r = 0, erow = rows->first; r < rows->length; r++ )
-    {
-        row = erow->point.row;
-        for ( c = 0, el = points[row]->first; c < points[row]->length; c++ )
+        /* check if some pixel in the row has been changed */
+        if ( redo_rows[i] == 1 )
         {
-            /* over write row and col of the pixel */
-            px = el->point.row;
-            py = el->point.col;
-            /* printf("\n\n====================\n");  */
-            /* printf("px: %d, py: %d\n", px, py);    */
+            /* pixels inside the row changed, therefore we compute the row */
+            redo_rows[i] = 0;
+            /* update cache */
+            dist_cache = update_float_cache ( &i, &last_row, &nrows, dist_cache, rdist );
+            elev_cache = update_float_cache ( &i, &last_row, &nrows, elev_cache, elevation );
+            dir_cache = update_short_cache ( &i, &last_row, &nrows, dir_cache, rdir );
+            up_cache = update_float_cache ( &i, &last_row, &nrows, up_cache, rdrop_up );
+            dw_cache = update_float_cache ( &i, &last_row, &nrows, dw_cache, rdrop_dw );
+            last_row = i;
 
-            /* check if pixel row change */
-            if (px != p_last)
+            for ( int j = 0; j < ncols; j++ )
             {
-                p_last = px;
-                /*up_maps_rows( p_last, road, rdist, rdir, not_used, elevation,
-                              rdrop_up, rdrop_dw, proad, pdist, pdir, pnot_used,
-                              pelev, pdrop_up, pdrop_dw); */
-                /* load row of different maps */
-                proad = road[p_last];
-                pdist = rdist[p_last];
-                pdir = rdir[p_last];
-                pnot_used = not_used[p_last];
-                pelev = elevation[p_last];
-                pdrop_up = rdrop_up[p_last];
-                pdrop_dw = rdrop_dw[p_last];
-            }
-
-            pnot_used[py] = 0;
-            if (proad[py] == 1){ pdir[py] = -1;}
-
-            /* update global variable of pixel: `neighbours` */
-            up_neighbours ( px, py, movements, nrows, ncols );
-            for ( n = 0; n < NMV ; n++ )
-            {
-                nx = neighbours[n][0];
-                ny = neighbours[n][1];
-                /* Check if neighbours are valid*/
-                if (nx != NULL_NEIG)
+                if ( dist_cache[1][j] >= 0 )
                 {
-                    /* printf("    nx: %d, ny: %d\n", nx, ny); */
-                    /* check if is a new row */
-                    if (nx != n_last)
+                    get_neighbours ( &i, &j, movements, neighbours, &nrows, &ncols );
+                    for ( int n = 0; n < NMV ; n++ )
                     {
-                        n_last = nx;
-                        /* using grass function `get_row`
-                        * load row of different maps */
-                        nroad = road[n_last];
-                        ndomain = domain[n_last];
-                        ndist = rdist[n_last];
-                        ndir = rdir[n_last];
-                        nnot_used = not_used[n_last];
-                        nelev = elevation[p_last];
-                        ndrop_up = rdrop_up[n_last];
-                        ndrop_dw = rdrop_dw[n_last];
-                    }
+                        // TODO: after check if there are performce consegunece to declaire here or not
+                        nx = neighbours[n][0];
+                        ny = neighbours[n][1];
+                        // check if is road, and set direction to -1
+                        dir_cache[1][j] = dist_cache[1][j] == 0 ? -1:dir_cache[1][j];
+                        //Check if neighbours are inside the region AND the domain
+                        if ( nx != NULL_NEIG && dist_cache[nx][ny]>0 )
+                        {
+                            new_dist = dist_cache[1][j] + movements[n].dist;
+                            if ( dist_cache[nx][ny] > new_dist )
+                            {
+                                // assign the smaller one
+                                dist_cache[nx][ny] = new_dist;
+                                dir_cache[nx][ny] = movements[n].dir;
 
-                    /* check if we are inside the domain */
-                    if ((ndomain[ny] != NULL_MAP) && (nnot_used[ny] != 0) && nroad[ny] != 1)
-                    {
-                        if (ndist[ny] != NULL_MAP)
-                        {
-                            /* distance already compute check the smaller one */
-                            new_dist = pdist[py] + movements[n].dist;
-                            if (ndist[ny] > new_dist)
-                            {
-                                /* assign the smaller one */
-                                /* printf("new_dist: %f", new_dist); */
-                                ndist[ny] = new_dist;
-                                ndir[ny] = movements[n].dir;
-                                nnot_used[ny] = 1;
-                                add_point_to_array_of_list(nx, ny, origin_list);
-                                up_drop(py, ny, nelev, pelev,
-                                        pdrop_up, pdrop_dw, ndrop_up, ndrop_dw);
+                                //add_point_to_array_of_list(nx, ny, origin_list);
+
+                                //check if drop is positive or negative
+                                drop = elev_cache[nx][ny] - elev_cache[1][j];
+                                if ( drop >= 0 )
+                                {
+                                    up_cache[nx][ny] = up_cache[1][j] + drop;
+                                    dw_cache[nx][ny] = dw_cache[1][j];
+                                }
+                                else
+                                {
+                                    up_cache[nx][ny] = up_cache[1][j];
+                                    dw_cache[nx][ny] = dw_cache[1][j] + drop;
+                                }
+                                redo_rows[i + nx - 1] = 1;
+                                count += 1;
                             }
                         }
-                        else
-                        {
-                            /* compute distance */
-                            ndist[ny] = pdist[py] + movements[n].dist;
-                            ndir[ny]   = movements[n].dir;
-                            up_drop(py, ny, nelev, pelev,
-                                        pdrop_up, pdrop_dw, ndrop_up, ndrop_dw);
-                            /* check if is already compute */
-                            if (nnot_used[ny])
-                            {
-                                add_point_to_array_of_list( nx, ny, origin_list);
-                            }
-                        }
-                        /* printf("ndist[ny]: %f", ndist[ny]); */
                     }
                 }
             }
-            prev = el;
-            el = el->next;
-            free(prev);
+            //printf("--------------------------------\n");
+            //printf("dist_cache, row: %d\n", i);
+            //print_array(dist_cache, TYPE_FLOAT, 3, 11);
         }
-        prow = erow;
-        erow = erow->next;
-        free(prow);
     }
-    rows = get_row_not_null(origin_list, nrows);
-    if (rows->length != 0 )
-    {
-        execute( movements, rows, origin_list, road, domain, elevation, rdist, rdir,
-                 not_used, rdrop_up, rdrop_dw, nrows, ncols );
-    }
-    return 0;
+    //free cache //
+    free ( elev_cache );
+    free ( dist_cache );
+    free ( dir_cache );
+    free ( up_cache );
+    free ( dw_cache );
+    return count;
 }
 
-int distdrop(move   *movements,
-             short  **road,
-             short  **domain,
-             float  **elevation,
-             float  **rdist,
-             short  **rdir,
-             short  **not_used,
-             float  **rdrop_up,
-             float  **rdrop_dw,
-             int nrows,
-             int ncols)
+
+
+int distdrop ( move   *movements,
+               float  **rdist,
+               float  **elevation,
+               float  **rdrop_up,
+               float  **rdrop_dw,
+               short  **rdir,
+               int nrows,
+               int ncols )
 {
-    /* printf ( "    Get not null...\n" ); */
-    list **road_points = get_not_null ( road , nrows, ncols);
-    list *rows = get_row_not_null( road_points, nrows);
-    execute( movements, rows, road_points, road, domain, elevation,
-             rdist, rdir, not_used, rdrop_up, rdrop_dw, nrows, ncols);
-    return 0;
-}
+    int all_done = 1;
 
-/*
-int distdrop_not_recursive(move   *movements,
-             short  **road,
-             short  **domain,
-             float  **elevation,
-             float  **rdist,
-             short  **rdir,
-             short  **not_used,
-             float  **rdrop_up,
-             float  **rdrop_dw,
-             int nrows,
-             int ncols)
-{
+    // init redo_rows
+    short *redo_rows = ( short* ) malloc ( nrows * sizeof ( short ) );
 
-    list *road_points = get_not_null ( road , nrows, ncols);
-    list *rows = get_row_not_null( road_points );
-    while ( rows->length != 0 )
+    if ( redo_rows == NULL )
     {
-        road_points = execute( movements, rows, road_points, road, domain, elevation,
-                               rdist, rdir, not_used, rdrop_up, rdrop_dw, nrows, ncols);
-        rows = get_row_not_null( road_points );
+        fprintf ( stderr, "Unable allocate memory" );
+        exit ( 1 );
     }
+    for ( int i = 0; i < nrows; i++ )
+        redo_rows[i] = 1;
+
+
+    while ( all_done ) // if all_done != 0? continue: break
+    {
+        printf("inside the while: %d:\n", all_done);
+        all_done = all_pixel ( movements, redo_rows, rdist, elevation,
+                               rdir, rdrop_up, rdrop_dw,
+                               nrows, ncols );
+    }
+    //printf("--rdist--\n");
+    //print_array(rdist, TYPE_FLOAT, nrows, ncols);
     return 0;
 }
-*/
+
