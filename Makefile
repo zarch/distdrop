@@ -1,4 +1,4 @@
-CFLAGS = -Wall -pedantic -std=c99 -ggdb -g2
+CFLAGS = -O -Wall -W -pedantic -ansi -std=c99 -ggdb -g2
 
 distdrop: main.o list.o drop.o ascii.o
 	$(CC) -o distdrop main.o list.o drop.o ascii.o
