@@ -47,10 +47,10 @@ extern DCELL f_d(DCELL);
  */
 
 static void test_distdrop();
-//static int test_array_of_list();
+static int test_array_of_list();
 
 
-/*
+
 static int test_array_of_list()
 {
     int nrows = 10;
@@ -61,19 +61,35 @@ static int test_array_of_list()
     add_point_to_array_of_list(1, 0, a);
     add_point_to_array_of_list(1, 1, a);
     add_point_to_array_of_list(1, 3, a);
-    print_array_of_list( a, 10 );
+    print_array_of_list( a, nrows );
+    printf("\n\nlen %d\n", a[0]->length);
+    elem *el = pop(a[0]);
+    printf("\n\npop: row:0 el_row:%d, el_col:%d\n\n", el->point.row, el->point.col);
+    printf("\n\nlen %d\n", a[0]->length);
+
+    printf("\n\nlen %d\n", a[0]->length);
+    el = pop(a[0]);
+    printf("\n\npop: row:0 el_row:%d, el_col:%d\n\n", el->point.row, el->point.col);
+    printf("\n\nlen %d\n", a[0]->length);
+
+    printf("\n\nlen %d\n", a[0]->length);
+    el = pop(a[0]);
+    printf("\n\npop: row:0 el_row:%d, el_col:%d\n\n", el->point.row, el->point.col);
+    printf("\n\nlen %d\n", a[0]->length);
+
+    print_array_of_list( a, nrows );
     list *rows = get_row_not_null(a, nrows);
     print_list ( rows );
     return 0;
 }
-*/
+
 
 
 static void test_distdrop(char *road, char *domain, char *elevation)
 {
     int nrows, ncols;
 
-    /* Read data */
+    // Read data
     short **point = read_short_data(road, &nrows, &ncols);
     short **line = read_short_data(domain, &nrows, &ncols);
     float **elev = read_float_data(elevation, &nrows, &ncols);
@@ -87,7 +103,7 @@ static void test_distdrop(char *road, char *domain, char *elevation)
     printf ( "\n\n    Print %s...\n", elevation );
     print_array(elev, TYPE_FLOAT, nrows, ncols);
 
-    /* Initialize empty array */
+    // Initialize empty array
     short **rdir = read_short_data("null.txt", &nrows, &ncols);
     // merge road and domain map
     float **rdist = get_input_map ( point, line, &nrows, &ncols );
@@ -95,9 +111,10 @@ static void test_distdrop(char *road, char *domain, char *elevation)
     float **rdrop_dw = read_float_data("null.txt", &nrows, &ncols);
     //short **not_used = read_short_data("ones.txt", &nrows, &ncols);
 
-    printf("Before enter in distdrop\n");
-    distdrop ( movements, rdist, elev, rdrop_up, rdrop_dw,
-               rdir, nrows, ncols );
+    //distdrop ( movements, rdist, elev, rdrop_up, rdrop_dw,
+    //           rdir, nrows, ncols );
+    distdrop_list ( movements, rdist, elev, rdrop_up, rdrop_dw,
+                    rdir, nrows, ncols );
     printf("\n\n");
 
     print_array(rdir, TYPE_SHORT, nrows, ncols);
@@ -124,7 +141,7 @@ static void test_distdrop(char *road, char *domain, char *elevation)
 int main()
 {
     //test_list();
-    //test_array_of_list();
+    test_array_of_list();
 
     // test distdrop algorithm
     //             road         domain       elevation

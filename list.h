@@ -1,8 +1,8 @@
-/* new variable types declaration */
+﻿/* new variable types declaration */
 #ifndef LIST_H
 #define LIST_H
 
-/* point */
+// point
 typedef struct __pnt__
 {
     int row;
@@ -10,7 +10,7 @@ typedef struct __pnt__
 } pnt;
 
 
-/* element */
+// element
 typedef struct __elem__
 {
     pnt point;
@@ -18,7 +18,7 @@ typedef struct __elem__
 } elem;
 
 
-/* list of element */
+// list of element
 typedef struct __list__
 {
     elem *first;
@@ -27,14 +27,15 @@ typedef struct __list__
 } list;
 
 
-/* global variables declaration */
-/* extern int quante_volte; */
+// global variables declaration
 
-/* global functions declaration */
+
+// global functions declaration
 extern list *create_empty_list ( void );
-extern list **create_empty_array_of_list ( int ); /* */
+extern list **create_empty_array_of_list ( int );
 extern void add_point_to_list ( int, int, list * );
 extern void add_point_to_array_of_list ( int, int, list ** );
+extern elem *pop ( list * );
 extern void populate ( int, list * );
 extern void print_list ( list * );
 extern void print_array_of_list ( list **, int );

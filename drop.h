@@ -22,6 +22,7 @@ extern move movements[NMV];
 /* global functions declaration */
 extern int print_dir(short int **, int, int) ;
 extern int print_array (void*, int, int, int) ;
+extern list *get_row_not_null( list **, int );
 
 //                             road     domain   nrows ncols
 extern float **get_input_map ( short**, short**, int*, int* );
@@ -34,16 +35,6 @@ extern int *get_neighbours ( int *,  //px,
                              int *); //ncols )
 
 
-extern int all_pixel ( move   *,  // list of movements
-                       short  *,  // todo bool array rows
-                       float  **,  // rdist
-                       float  **, // elevation,
-                       short  **, // rdir,
-                       float  **, // rdrop_up,
-                       float  **, // rdrop_dw,
-                       int,       // nrows,
-                       int);      // ncols
-
 extern int distdrop ( move   *,  // movements,
                       float  **, //rdist,
                       float  **, //elevation,
@@ -53,5 +44,14 @@ extern int distdrop ( move   *,  // movements,
                       int,       // nrows,
                       int);      // ncols
 
+
+extern int distdrop_list ( move   *,  // movements,
+                      float  **, //rdist,
+                      float  **, //elevation,
+                      float  **, //rdrop_up,
+                      float  **, //rdrop_dw,
+                      short  **, //rdir,
+                      int,       // nrows,
+                      int);      // ncols
 
 #endif  /* DROP_H */
