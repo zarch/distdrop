@@ -1,7 +1,7 @@
 #ifndef DROP_H
 #define DROP_H
 
-#include "list.h"
+#include "queue.h"
 #define NMV 8
 
 #define TYPE_SHORT 1
@@ -22,7 +22,7 @@ extern move movements[NMV];
 /* global functions declaration */
 extern int print_dir(short int **, int, int) ;
 extern int print_array (void*, int, int, int) ;
-extern list *get_row_not_null( list **, int );
+extern queue *get_row_not_null( queue **, int );
 
 //                             road     domain   nrows ncols
 extern float **get_input_map ( short**, short**, int*, int* );
@@ -45,7 +45,7 @@ extern int distdrop ( move   *,  // movements,
                       int);      // ncols
 
 
-extern int distdrop_list ( move   *,  // movements,
+extern int distdrop_queue ( move   *,  // movements,
                       float  **, //rdist,
                       float  **, //elevation,
                       float  **, //rdrop_up,

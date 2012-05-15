@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "list.h"
+#include "queue.h"
 
-void add_point_to_list ( int row, int col, list *l )
+void append ( int row, int col, queue *l )
 {
     elem *e = malloc ( sizeof ( elem ) );
 
@@ -10,14 +10,14 @@ void add_point_to_list ( int row, int col, list *l )
     e->point.col = col;
     e->next = NULL;
 
-    // set the first point if list is empty, otherwise
+    // set the first point if queue is empty, otherwise
     // update the link from the last element to new point
     if ( l->length == 0 )
         l->first = e;
     else
         l->last->next = e;
 
-    // update the last in the list
+    // update the last in the queue
     l->last = e;
 
     // update the length attribute
@@ -25,11 +25,11 @@ void add_point_to_list ( int row, int col, list *l )
 }
 
 
-elem *pop ( list *l )
+elem *pop ( queue *l )
 {
     //
-    // return the first element of a list and remove from the list
-    // if the list is empty return NULL
+    // return the first element of a queue and remove from the queue
+    // if the queue is empty return NULL
     elem *el;
 
     if ( l->length != 0 )
@@ -46,7 +46,7 @@ elem *pop ( list *l )
 
 
 
-void add_point_to_array_of_list ( int row, int col, list **l )
+void array_append ( int row, int col, queue **l )
 {
     elem *e = malloc ( sizeof ( elem ) );
 
@@ -55,40 +55,40 @@ void add_point_to_array_of_list ( int row, int col, list **l )
     e->point.col = col;
     e->next = NULL;
 
-    add_point_to_list ( row, col, l[row] );
+    append ( row, col, l[row] );
 }
 
 
-void populate ( int nrows, list *l )
+void populate ( int nrows, queue *l )
 {
     for ( int row = 0; row < nrows; row++ )
-        add_point_to_list ( row, 0, l );
+        append ( row, 0, l );
 }
 
 
 
-list **create_empty_array_of_list( int nrows )
+queue **create_empty_array_of_queue( int nrows )
 {
-    list **a = malloc ((long unsigned int)nrows * sizeof ( list * ) );
+    queue **a = malloc ((long unsigned int)nrows * sizeof ( queue * ) );
 
     for(int i = 0; i < nrows; i++)
-        a[i] = create_empty_list();
+        a[i] = create_empty_queue();
 
     return a;
 }
 
 
 
-list * create_empty_list()
+queue * create_empty_queue()
 {
-    list *l = malloc ( sizeof ( list ) );
+    queue *l = malloc ( sizeof ( queue ) );
 
     l->length = 0;
     l->first = l->last = NULL;
     return l;
 }
 
-void print_array_of_list ( list **l, int nrows )
+void print_array_of_queue ( queue **l, int nrows )
 {
     elem *e;
 
@@ -107,7 +107,7 @@ void print_array_of_list ( list **l, int nrows )
     }
 }
 
-void print_list ( list *l )
+void print_queue ( queue *l )
 {
     elem *e = l->first;
 
@@ -118,7 +118,7 @@ void print_list ( list *l )
     }
 }
 
-void free_list ( list *l )
+void free_queue ( queue *l )
 {
     elem *e = l->first, *p;
 

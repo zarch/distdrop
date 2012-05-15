@@ -1,6 +1,6 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
-#include "list.h"
+#include "queue.h"
 #include "drop.h"
 
 
@@ -36,23 +36,23 @@ move movements[NMV] =
     {{-1, -1}, 9, M_SQRT2},
 };
 
-list *get_row_not_null( list **points, int nrows )
+queue *get_row_not_null( queue **points, int nrows )
 {
-    list *rows = create_empty_list();
+    queue *rows = create_empty_queue();
     for (int row = 0; row < nrows; row++ )
         if (points[row]->length != 0)
-            add_point_to_list(row, 0, rows);
+            append(row, 0, rows);
 
     return rows;
 }
 
-list **init_array_of_list_from_map( int nrows, int ncols, float **map )
+queue **init_array_of_queue_from_map( int nrows, int ncols, float **map )
 {
-    list **a = create_empty_array_of_list( nrows );
+    queue **a = create_empty_array_of_queue( nrows );
     for(int i = 0; i < nrows; i++)
         for (int j=0; j<ncols; j++)
             if (( int )map[i][j] == INPUT_ROAD)
-                add_point_to_array_of_list(i, j, a);
+                array_append(i, j, a);
 
     return a;
 }
@@ -339,17 +339,17 @@ int *get_neighbours ( int *px, int *py, move *movements, int **neighbours,
 }
 
 
-void list_pixel_core ( move   *movements, list   **redo_rows,
-                       float  **rdist, float  **elevation,
-                       short  **rdir, float  **rdrop_up, float  **rdrop_dw,
+void queue_pixel_core ( move   *movements, queue **redo_rows,
+                       float **rdist, float **elevation,
+                       short **rdir, float **rdrop_up, float **rdrop_dw,
                        int nrows, int ncols,
                        //------------------------------------------------
                        // indexes
                        int i, int *last_row, int *count, int **neighbours,
                        //------------------------------------------------
                        // cache
-                       float  **dist_cache, float  **elev_cache,
-                       short  **dir_cache, float **up_cache, float  **dw_cache
+                       float **dist_cache, float **elev_cache,
+                       short **dir_cache, float **up_cache, float **dw_cache
                      )
 {
     elem *el = pop( redo_rows[i] );
@@ -403,7 +403,7 @@ void list_pixel_core ( move   *movements, list   **redo_rows,
                             up_cache[nx][ny] = up_cache[1][j];
                             dw_cache[nx][ny] = dw_cache[1][j] + drop;
                         }
-                        add_point_to_array_of_list(i + nx - 1, ny, redo_rows);
+                        array_append(i + nx - 1, ny, redo_rows);
                         *count += 1;
                         row_canged += 1;
                     }
@@ -421,7 +421,7 @@ void list_pixel_core ( move   *movements, list   **redo_rows,
 }
 
 
-int list_pixel ( move   *movements, list   **redo_rows,
+int queue_pixel ( move   *movements, queue   **redo_rows,
                  float  **rdist, float  **elevation,
                  short  **rdir, float  **rdrop_up, float  **rdrop_dw,
                  int nrows, int ncols )
@@ -436,13 +436,13 @@ int list_pixel ( move   *movements, list   **redo_rows,
     float **dw_cache = new_float_map ( &row_cache, &ncols );
 
     // Initialize neighbours
-    int r=8,c=2;
+    int r=8, c=2;
     int **neighbours = new_int_map ( &r, &c, NULL );
 
     printf ( "\n\n↓\n" );
     for ( int i = 0; i < nrows; i++ )
     {
-        list_pixel_core ( movements, redo_rows, rdist, elevation, rdir,
+        queue_pixel_core ( movements, redo_rows, rdist, elevation, rdir,
                           rdrop_up, rdrop_dw, nrows, ncols,
                           //------------------------------------------------
                           // indexes
@@ -455,9 +455,9 @@ int list_pixel ( move   *movements, list   **redo_rows,
     {
         count = 0;
         printf ( "\n\n↑\n" );
-        for ( int i = nrows-1; i < 0; i-- )
+        for ( int i = nrows-1; i >= 0; i-- )
         {
-            list_pixel_core ( movements, redo_rows, rdist, elevation, rdir,
+            queue_pixel_core ( movements, redo_rows, rdist, elevation, rdir,
                           rdrop_up, rdrop_dw, nrows, ncols,
                           //------------------------------------------------
                           // indexes
@@ -480,16 +480,16 @@ int list_pixel ( move   *movements, list   **redo_rows,
 
 
 
-int distdrop_list ( move   *movements, float  **rdist, float  **elevation,
+int distdrop_queue ( move   *movements, float  **rdist, float  **elevation,
                float  **rdrop_up, float  **rdrop_dw,  short  **rdir,
                int nrows, int ncols )
 {
     int all_done = 1;
-    list **redo_rows = init_array_of_list_from_map( nrows, ncols, rdist );
+    queue **redo_rows = init_array_of_queue_from_map( nrows, ncols, rdist );
 
     while ( all_done ) // if all_done != 0? continue: break
     {
-        all_done = list_pixel ( movements, redo_rows, rdist, elevation, // input
+        all_done = queue_pixel ( movements, redo_rows, rdist, elevation, // input
                                 rdir, rdrop_up, rdrop_dw,             // outnput
                                 nrows, ncols );
     }
