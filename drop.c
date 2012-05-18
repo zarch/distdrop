@@ -11,6 +11,16 @@
 #define INPUT_DOMAIN 10000.0f
 #define INPUT_NOT_DOMAIN -1.0f
 #define INPUT_ROAD 0.0f
+#define DIR_ROAD -1
+
+/*
+ * Possible improvements
+ * =======================
+ *
+ * - use a stack for the row;
+ * - use a cache with more than 3 rows;
+ *
+ */
 
 
 /*
@@ -70,16 +80,16 @@ int print_dir ( short int **map, int nrows, int ncols )
             switch ( map[row][col] )
             {
                 // utf8 symbols: ⬅ ⬆ ⬇ ⬈ ⬉ ⬊ ⬋ ⬚ ← ↑ → ↓ ↗ ↖ ↘ ↙ ⬛ ⬣
-                case 0: printf ( "⬚" ); break;
-                case 1: printf ( "↖" ); break;
-                case 2: printf ( "↑" ); break;
-                case 3: printf ( "↗" ); break;
-                case 4: printf ( "←" ); break;
-                case 6: printf ( "→" ); break;
-                case 7: printf ( "↙" ); break;
-                case 8: printf ( "↓" ); break;
-                case 9: printf ( "↘" ); break;
-                case -1: printf ( "⬣" ); break;
+                case 0: printf ( " ⬚" ); break;
+                case 1: printf ( " ↖" ); break;
+                case 2: printf ( " ↑" ); break;
+                case 3: printf ( " ↗" ); break;
+                case 4: printf ( " ←" ); break;
+                case 6: printf ( " →" ); break;
+                case 7: printf ( " ↙" ); break;
+                case 8: printf ( " ↓" ); break;
+                case 9: printf ( " ↘" ); break;
+                case -1: printf ( " ⬣" ); break;
             }
         }
         printf ( "\n" );
@@ -345,37 +355,37 @@ void queue_pixel_core ( move   *movements, queue **redo_rows,
                        int nrows, int ncols,
                        //------------------------------------------------
                        // indexes
-                       int i, int *last_row, int *count, int **neighbours,
+                       int row, int *last_row, int *count, int **neighbours,
                        //------------------------------------------------
                        // cache
                        float **dist_cache, float **elev_cache,
                        short **dir_cache, float **up_cache, float **dw_cache
                      )
 {
-    elem *el = pop( redo_rows[i] );
+    elem *el = pop( redo_rows[row] ), *prev;
     int row_canged = 0;
 
     // if el, update cache
     if (el != NULL)
     {
-        dist_cache = update_float_cache ( &i, last_row, &nrows, dist_cache, rdist );
-        elev_cache = update_float_cache ( &i, last_row, &nrows, elev_cache, elevation );
-        dir_cache = update_short_cache ( &i, last_row, &nrows, dir_cache, rdir );
-        up_cache = update_float_cache ( &i, last_row, &nrows, up_cache, rdrop_up );
-        dw_cache = update_float_cache ( &i, last_row, &nrows, dw_cache, rdrop_dw );
-        *last_row = i;
+        dist_cache = update_float_cache ( &row, last_row, &nrows, dist_cache, rdist );
+        elev_cache = update_float_cache ( &row, last_row, &nrows, elev_cache, elevation );
+        dir_cache = update_short_cache ( &row, last_row, &nrows, dir_cache, rdir );
+        up_cache = update_float_cache ( &row, last_row, &nrows, up_cache, rdrop_up );
+        dw_cache = update_float_cache ( &row, last_row, &nrows, dw_cache, rdrop_dw );
+        *last_row = row;
     }
 
     // check if there is pixel to do in the row
     while (el != NULL)
     {
-        int j = el->point.col;
-        if ( dist_cache[1][j] >= 0 )
+        int col = el->point.col;
+        if ( dist_cache[1][col] >= 0 )
         {
             // check if is road, and set direction to -1
-            dir_cache[1][j] = dist_cache[1][j] == 0 ? -1:dir_cache[1][j];
+            dir_cache[1][col] = dist_cache[1][col] == 0 ? DIR_ROAD: dir_cache[1][col];
             // get cell neighbours
-            get_neighbours ( &i, &j, movements, neighbours, &nrows, &ncols );
+            get_neighbours ( &row, &col, movements, neighbours, &nrows, &ncols );
             for ( int n = 0; n < NMV ; n++ )
             {
                 // TODO: after check if there are performce consegunece to declaire here or not
@@ -385,37 +395,39 @@ void queue_pixel_core ( move   *movements, queue **redo_rows,
                 //Check if neighbours are inside the region AND the domain
                 if ( nx != NULL_NEIG && dist_cache[nx][ny]>0 )
                 {
-                    float new_dist = dist_cache[1][j] + movements[n].dist;
+                    float new_dist = dist_cache[1][col] + movements[n].dist;
                     if ( dist_cache[nx][ny] > new_dist )
                     {
                         // assign the smaller one
                         dist_cache[nx][ny] = new_dist;
                         dir_cache[nx][ny] = movements[n].dir;
                         //check if drop is positive or negative
-                        float drop = elev_cache[nx][ny] - elev_cache[1][j];
+                        float drop = elev_cache[nx][ny] - elev_cache[1][col];
                         if ( drop >= 0 )
                         {
-                            up_cache[nx][ny] = up_cache[1][j] + drop;
-                            dw_cache[nx][ny] = dw_cache[1][j];
+                            up_cache[nx][ny] = up_cache[1][col] + drop;
+                            dw_cache[nx][ny] = dw_cache[1][col];
                         }
                         else
                         {
-                            up_cache[nx][ny] = up_cache[1][j];
-                            dw_cache[nx][ny] = dw_cache[1][j] + drop;
+                            up_cache[nx][ny] = up_cache[1][col];
+                            dw_cache[nx][ny] = dw_cache[1][col] + drop;
                         }
-                        array_append(i + nx - 1, ny, redo_rows);
+                        array_append(row + nx - 1, ny, redo_rows);
                         *count += 1;
-                        row_canged += 1;
+                        row_canged += 1; // debug only
                     }
                 }
             }
         }
-        el = pop( redo_rows[i] );
+        prev = el;
+        free(prev);
+        el = pop( redo_rows[row] );
     }
     if (row_canged)
     {
         printf("--------------------------------\n");
-        printf("dist_cache, row: %d\n", i);
+        printf("dist_cache, row: %d\n", row);
         print_array(dist_cache, TYPE_FLOAT, 3, 11);
     }
 }
@@ -424,20 +436,16 @@ void queue_pixel_core ( move   *movements, queue **redo_rows,
 int queue_pixel ( move   *movements, queue   **redo_rows,
                  float  **rdist, float  **elevation,
                  short  **rdir, float  **rdrop_up, float  **rdrop_dw,
-                 int nrows, int ncols )
+                 int nrows, int ncols,
+                 //------------------------------------------------
+                 // neighbours
+                 int **neighbours,
+                 //------------------------------------------------
+                 // cache
+                 float **dist_cache, float **elev_cache,
+                 short **dir_cache, float **up_cache, float **dw_cache)
 {
-    int row_cache=3, count = 0, last_row=-1;//,  nx, ny;
-
-    /* initialize cache, input and output cache */
-    float **elev_cache = new_float_map ( &row_cache, &ncols );
-    float **dist_cache = new_float_map ( &row_cache, &ncols );
-    short **dir_cache = new_short_map ( &row_cache, &ncols );
-    float **up_cache = new_float_map ( &row_cache, &ncols );
-    float **dw_cache = new_float_map ( &row_cache, &ncols );
-
-    // Initialize neighbours
-    int r=8, c=2;
-    int **neighbours = new_int_map ( &r, &c, NULL );
+    int count = 0, last_row=-1;//,  nx, ny;
 
     printf ( "\n\n↓\n" );
     for ( int i = 0; i < nrows; i++ )
@@ -468,12 +476,6 @@ int queue_pixel ( move   *movements, queue   **redo_rows,
         }
     }
     printf("===========================================\n");
-    //free cache
-    free ( elev_cache );
-    free ( dist_cache );
-    free ( dir_cache );
-    free ( up_cache );
-    free ( dw_cache );
     return count;
 }
 
@@ -487,12 +489,39 @@ int distdrop_queue ( move   *movements, float  **rdist, float  **elevation,
     int all_done = 1;
     queue **redo_rows = init_array_of_queue_from_map( nrows, ncols, rdist );
 
+    int row_cache=3;//,  nx, ny;
+
+    /* initialize cache, input and output cache */
+    float **elev_cache = new_float_map ( &row_cache, &ncols );
+    float **dist_cache = new_float_map ( &row_cache, &ncols );
+    short **dir_cache = new_short_map ( &row_cache, &ncols );
+    float **up_cache = new_float_map ( &row_cache, &ncols );
+    float **dw_cache = new_float_map ( &row_cache, &ncols );
+
+    // Initialize neighbours
+    int r=8, c=2;
+    int **neighbours = new_int_map ( &r, &c, NULL );
+
+
     while ( all_done ) // if all_done != 0? continue: break
     {
         all_done = queue_pixel ( movements, redo_rows, rdist, elevation, // input
                                 rdir, rdrop_up, rdrop_dw,             // outnput
-                                nrows, ncols );
+                                nrows, ncols,
+                                //------------------------------------------------
+                                // indexes
+                                neighbours,
+                                //------------------------------------------------
+                                // cache
+                                dist_cache, elev_cache, dir_cache,
+                                up_cache, dw_cache);
     }
+    //free cache
+    free ( elev_cache );
+    free ( dist_cache );
+    free ( dir_cache );
+    free ( up_cache );
+    free ( dw_cache );
     return 0;
 }
 

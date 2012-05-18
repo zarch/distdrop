@@ -4,21 +4,21 @@
 
 void append ( int row, int col, queue *l )
 {
-    elem *e = malloc ( sizeof ( elem ) );
+    elem *el = malloc ( sizeof ( elem ) );
 
-    e->point.row = row;
-    e->point.col = col;
-    e->next = NULL;
+    el->point.row = row;
+    el->point.col = col;
+    el->next = NULL;
 
     // set the first point if queue is empty, otherwise
     // update the link from the last element to new point
-    if ( l->length == 0 )
-        l->first = e;
+    if ( l->first == NULL )
+        l->first = el;
     else
-        l->last->next = e;
+        l->last->next = el;
 
     // update the last in the queue
-    l->last = e;
+    l->last = el;
 
     // update the length attribute
     l->length += 1;
@@ -30,16 +30,13 @@ elem *pop ( queue *l )
     //
     // return the first element of a queue and remove from the queue
     // if the queue is empty return NULL
-    elem *el;
+    elem *el = l->first;
 
-    if ( l->length != 0 )
+    if ( el != NULL )
     {
-        el = (elem *) l->first;
         l->first = el->next;
         l->length -= 1;
     }
-    else
-        el = NULL;
 
     return el;
 }
@@ -48,13 +45,6 @@ elem *pop ( queue *l )
 
 void array_append ( int row, int col, queue **l )
 {
-    elem *e = malloc ( sizeof ( elem ) );
-
-    // initialize the element
-    e->point.row = row;
-    e->point.col = col;
-    e->next = NULL;
-
     append ( row, col, l[row] );
 }
 
