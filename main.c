@@ -227,12 +227,17 @@ int main ( int argc, char *argv[] )
     dw.cache =   (FCELL **) G_malloc(row_cache * sizeof(FCELL *));
 
     int rowtest = 4;
+    // setup the ROWIO struct
     // similar to line 68, r.mfilter/perform.c
     //            R,        fd,      nrows, len, getrow, putrow
     Rowio_setup ( &elev.io, elev.fd, nrows, ncols * sizeof(FCELL), getrow, NULL );
     elev.cache[0] = Rowio_get(&elev.io, rowtest-1);
     elev.cache[1] = Rowio_get(&elev.io, rowtest-1);
     elev.cache[2] = Rowio_get(&elev.io, rowtest-1);
+    // read and modify the value in the row
+    elev.cache[0][0] = 10 * elev.cache[0][0];
+    // write in to the file
+    Rowio_put(&elev.io, elev.cache[0], rowtest-1);
 
 
     /*
