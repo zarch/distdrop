@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include "queue.h"
+#include "queue_alg.h"
+
 
 void append ( int row, int col, queue *l )
 {

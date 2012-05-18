@@ -30,9 +30,9 @@ extern DCELL f_d(DCELL);
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "ascii.h"
-#include "queue.h"
-#include "drop.h"
+#include "ascii_alg.h"
+#include "queue_alg.h"
+#include "drop_alg.h"
 
 /*
  * check the code with:

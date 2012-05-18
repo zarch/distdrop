@@ -1,7 +1,7 @@
 ﻿#include <stdio.h>
 #include <stdlib.h>
-#include "queue.h"
-#include "drop.h"
+#include "queue_alg.h"
+#include "drop_alg.h"
 
 
 // DEFINE GLOBAL VARIABLES

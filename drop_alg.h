@@ -1,7 +1,7 @@
 #ifndef DROP_H
 #define DROP_H
 
-#include "queue.h"
+#include "queue_alg.h"
 #define NMV 8
 
 #define TYPE_SHORT 1
