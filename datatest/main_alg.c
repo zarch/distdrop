@@ -1,4 +1,4 @@
-﻿
+
 /****************************************************************************
  *
  * MODULE:       r.example
@@ -104,11 +104,11 @@ static void test_distdrop(char *road, char *domain, char *elevation)
     print_array(elev, TYPE_FLOAT, nrows, ncols);
 
     // Initialize empty array
-    short **rdir = read_short_data("datatest/null.txt", &nrows, &ncols);
+    short **rdir = read_short_data("null.txt", &nrows, &ncols);
     // merge road and domain map
     float **rdist = get_input_map ( point, line, &nrows, &ncols );
-    float **rdrop_up = read_float_data("datatest/null.txt", &nrows, &ncols);
-    float **rdrop_dw = read_float_data("datatest/null.txt", &nrows, &ncols);
+    float **rdrop_up = read_float_data("null.txt", &nrows, &ncols);
+    float **rdrop_dw = read_float_data("null.txt", &nrows, &ncols);
     //short **not_used = read_short_data("ones.txt", &nrows, &ncols);
 
     //distdrop ( movements, rdist, elev, rdrop_up, rdrop_dw,
@@ -145,12 +145,12 @@ int main()
 
     // test distdrop algorithm
     //             road         domain       elevation
-    test_distdrop("datatest/points.txt", "datatest/lines.txt",  "datatest/elev.txt");
-    test_distdrop("datatest/points.txt", "datatest/circle.txt", "datatest/elev.txt");
-    test_distdrop("datatest/points.txt", "datatest/area.txt",   "datatest/elev.txt");
+    test_distdrop("points.txt", "lines.txt",  "elev.txt");
+    test_distdrop("points.txt", "circle.txt", "elev.txt");
+    test_distdrop("points.txt", "area.txt",   "elev.txt");
 
-    test_distdrop("datatest/lines.txt",  "datatest/lines.txt",  "datatest/elev.txt");
-    test_distdrop("datatest/lines.txt",  "datatest/area.txt",   "datatest/elev.txt");
+    test_distdrop("lines.txt",  "lines.txt",  "elev.txt");
+    test_distdrop("lines.txt",  "area.txt",   "elev.txt");
 
     return 0;
 }
