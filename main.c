@@ -14,11 +14,18 @@
  *   	    	 for details.
  *
  *****************************************************************************
-export CFLAGS="-O -Wall -W -pedantic -ansi -std=c99 -ggdb -g2"
-
-r.distdrop elevation=elev_null@atest road=points_null@atest domain=lines_null@atest \
-distance=dist0 direction=dir0 up=up0 down=dw0
-g.remove rast=dir0@atest,dist0@atest,up0,dw0
+ * export CFLAGS="-O -Wall -W -pedantic -ansi -std=c99 -ggdb -g2"
+ *
+ *
+ *
+ * to use the test maps, just loading with v.in.ogr
+ *
+ * then give: ::
+ * $ r.distdrop elevation=elev_null road=points_null domain=lines_null \
+ * distance=dist0 direction=dir0 up=up0 down=dw0
+ *
+ * then remove the generated rasters: ::
+ * $ g.remove rast=dir0@atest,dist0@atest,up0,dw0
  */
 
 #include <stdio.h>
@@ -71,14 +78,18 @@ DCELL d_calc ( DCELL x )
 }
 
 
-int init_seg_f_map(fcell_map *map, int nrows, int ncols, int srows, int scols,
+int init_seg_f_map(fcell_map *map,
+                   int nrows, int ncols,
+                   int srows, int scols,
                    int segments_in_memory )
 {
     map->temp_file = G_tempfile();
 
     map->temp_fd = creat ( map->temp_file, 0666 );
-    if ( segment_format ( map->temp_file, nrows, ncols, srows, scols,
-                          sizeof ( float ) ) != 1 )
+    if ( segment_format ( map->temp_fd,
+                          nrows, ncols,
+                          srows, scols,
+                          sizeof ( FCELL ) ) != 1 )
         G_fatal_error ( "can not create temporary file" );
 
     close ( map->temp_fd );
@@ -95,8 +106,10 @@ int init_seg_c_map(cell_map *map, int nrows, int ncols, int srows, int scols,
     map->temp_file = G_tempfile();
 
     map->temp_fd = creat ( map->temp_file, 0666 );
-    if ( segment_format ( *map->temp_file, nrows, ncols, srows, scols,
-                          sizeof ( int ) ) != 1 )
+    if ( segment_format ( map->temp_fd,
+                          nrows, ncols,
+                          srows, scols,
+                          sizeof ( CELL ) ) != 1 )
         G_fatal_error ( "can not create temporary file" );
 
     close ( map->temp_fd );
@@ -243,7 +256,7 @@ int main ( int argc, char *argv[] )
     int nrows = Rast_window_rows();
     int ncols = Rast_window_cols();
 
-    int srows=3, scols=ncols;
+    int srows=1, scols=ncols;
     int nseg = ( ( nrows + srows - 1 ) / srows ) * ( ( ncols + scols - 1 ) / scols );
     int row_cache = 3;
     int maxmem = 100;
@@ -310,23 +323,30 @@ int main ( int argc, char *argv[] )
         Rast_get_f_row ( elev.fd, elev.buf, row );
         Rast_get_c_row ( road.fd, road.buf, row );
         Rast_get_c_row ( domain.fd, domain.buf, row );
+        //printf( "before column cycle\n" );
         for ( col = 0; col < ncols; col++ )
         {
-            if (Rast_is_c_null_value( &domain.buf[col]) == 0 )
+            //printf( "row: %d, col: %d, domain is null? %d\n", row, col, Rast_is_c_null_value( &domain.buf[col]) );
+            //printf( "domain is null? %d, road is null? %d\n", Rast_is_c_null_value( &domain.buf[col]), Rast_is_c_null_value( &road.buf[col]) );
+            if (!Rast_is_c_null_value( &domain.buf[col]) )
             {
+                printf( " 0" );
                 segment_put ( dist.seg, &distdom, row, col );
                 segment_put ( dir.seg, &dirdom, row, col );
                 segment_put ( up.seg, &dropdom, row, col );
                 segment_put ( dw.seg, &dropdom, row, col );
-            }
-            if (Rast_is_c_null_value( road.buf[col]) == 0)
+            } else printf( "  " );
+            if (Rast_is_c_null_value( &road.buf[col]) == 0)
             {
+                //printf( "Road cell is not null\n" );
                 segment_put ( dist.seg, &distroad, row, col );
                 segment_put ( dir.seg, &dirroad, row, col );
                 segment_put ( up.seg, &droproad, row, col );
                 segment_put ( dw.seg, &droproad, row, col );
             }
+            //printf( "domain is null? %d, road is null? %d\n", Rast_is_c_null_value( &domain.buf[col]), Rast_is_c_null_value( &road.buf[col]) );
         }
+        printf( " \n" );
     }
 
     /* closing raster maps */
