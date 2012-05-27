@@ -24,14 +24,22 @@ g.remove rast=dir0@atest,dist0@atest,up0,dw0
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#include <grass/rowio.h>
+#include <grass/segment.h>
 
 #include "glob.h"
 #include "cache.h"
 
+#define SEGCOLSIZE  64
+#define DISTDOMAIN 10000.0f
+#define DISTROAD 0.0f
+#define DIRDOMAIN 0
+#define DIRROAD 5
+#define DROPDOMAIN 0
+#define DROPROAD 0
 
 /*
  * global function declaration
@@ -63,8 +71,41 @@ DCELL d_calc ( DCELL x )
 }
 
 
+int init_seg_f_map(fcell_map *map, int nrows, int ncols, int srows, int scols,
+                   int segments_in_memory )
+{
+    map->temp_file = G_tempfile();
 
+    map->temp_fd = creat ( map->temp_file, 0666 );
+    if ( segment_format ( map->temp_file, nrows, ncols, srows, scols,
+                          sizeof ( float ) ) != 1 )
+        G_fatal_error ( "can not create temporary file" );
 
+    close ( map->temp_fd );
+
+    map->temp_fd = open ( map->temp_file, 2 );
+    if ( segment_init ( map->seg, map->temp_fd, segments_in_memory ) != 1 )
+        G_fatal_error ( "can not initialize temporary file" );
+    return 0;
+}
+
+int init_seg_c_map(cell_map *map, int nrows, int ncols, int srows, int scols,
+                   int segments_in_memory )
+{
+    map->temp_file = G_tempfile();
+
+    map->temp_fd = creat ( map->temp_file, 0666 );
+    if ( segment_format ( *map->temp_file, nrows, ncols, srows, scols,
+                          sizeof ( int ) ) != 1 )
+        G_fatal_error ( "can not create temporary file" );
+
+    close ( map->temp_fd );
+
+    map->temp_fd = open ( map->temp_file, 2 );
+    if ( segment_init ( map->seg, map->temp_fd, segments_in_memory ) != 1 )
+        G_fatal_error ( "can not initialize temporary file" );
+    return 0;
+}
 
 /*
  * main function
@@ -172,28 +213,59 @@ int main ( int argc, char *argv[] )
 
     /* store maps types */
     elev.type = FCELL_TYPE;
-    printf ( "\nCheck where segmentation is...\n" );
     road.type = CELL_TYPE;
     domain.type = CELL_TYPE;
+
     dist.type = FCELL_TYPE;
     dir.type = CELL_TYPE;
     up.type = FCELL_TYPE;
     dw.type = FCELL_TYPE;
 
-    printf ( "\nCheck input and output maps...\n" );
+    G_message ( "Check input and output maps...\n" );
 
     G_check_input_output_name ( elev.name, dist.name, G_FATAL_EXIT );
     G_check_input_output_name ( road.name, dir.name, G_FATAL_EXIT );
     G_check_input_output_name ( domain.name, up.name, G_FATAL_EXIT );
     G_check_input_output_name ( domain.name, dw.name, G_FATAL_EXIT );
 
-    printf ( "\nGet the file descriptor of the input maps\n" );
+    G_message( _ ("Get the file descriptor of the input maps\n" ) );
     /* Rast_open_old - returns file destriptor (>0) */
     elev.fd = Rast_open_old ( elev.name, "" );
     road.fd = Rast_open_old ( road.name, "" );
     domain.fd = Rast_open_old ( domain.name, "" );
 
-    printf ( "\nGet the file descriptor of the output maps\n" );
+    /* Initialize segment */
+    dist.seg = (SEGMENT *) malloc(sizeof(SEGMENT));
+    dir.seg = (SEGMENT *) malloc(sizeof(SEGMENT));
+    up.seg = (SEGMENT *) malloc(sizeof(SEGMENT));
+    dw.seg = (SEGMENT *) malloc(sizeof(SEGMENT));
+
+    int nrows = Rast_window_rows();
+    int ncols = Rast_window_cols();
+
+    int srows=3, scols=ncols;
+    int nseg = ( ( nrows + srows - 1 ) / srows ) * ( ( ncols + scols - 1 ) / scols );
+    int row_cache = 3;
+    int maxmem = 100;
+    int segments_in_memory;
+
+    /* calculate total number of segments */
+    if ( maxmem > 0 )
+        segments_in_memory = ( maxmem * nseg ) / 100;
+    /* maxmem = 0 */
+    else
+        segments_in_memory = 4 * ( nrows / srows + ncols / scols + 2 );
+
+    if ( segments_in_memory == 0 )
+        segments_in_memory = 1;
+
+    G_message( _( "Creating some temporary files...\n" ) );
+    /* Create segmented format files for cost layer and output layer */
+    init_seg_f_map(&dist, nrows, ncols, srows, scols, segments_in_memory );
+    init_seg_c_map(&dir, nrows, ncols, srows, scols, segments_in_memory );
+    init_seg_f_map(&up, nrows, ncols, srows, scols, segments_in_memory );
+    init_seg_f_map(&dw, nrows, ncols, srows, scols, segments_in_memory );
+
     dist.fd = Rast_open_new ( dist.name, dist.type );
     //slp_raster = Rast_allocate_buf ( data_type );
     //Rast_set_null_value ( slp_raster, Rast_window_cols(), data_type );
@@ -202,42 +274,25 @@ int main ( int argc, char *argv[] )
     dw.fd = Rast_open_new ( dw.name, dw.type );
 
     /* Allocate input buffer */
-    elev.buf = (FCELL *) Rast_allocate_buf ( FCELL_TYPE );
-    road.buf = (CELL *) Rast_allocate_buf ( CELL_TYPE );
-    domain.buf = (CELL *) Rast_allocate_buf ( CELL_TYPE );
+    elev.buf = (FCELL *) Rast_allocate_buf ( elev.type );
+    road.buf = (CELL *) Rast_allocate_buf ( road.type );
+    domain.buf = (CELL *) Rast_allocate_buf ( domain.type );
 
     /* Allocate output buffer, use input map data_type */
-    dist.buf = (FCELL *) Rast_allocate_buf ( FCELL_TYPE );
-    dir.buf = (CELL *) Rast_allocate_buf ( CELL_TYPE );
-    up.buf = (FCELL *) Rast_allocate_buf ( FCELL_TYPE );
-    dw.buf = (FCELL *) Rast_allocate_buf ( FCELL_TYPE );
-
-    nrows = Rast_window_rows();
-    ncols = Rast_window_cols();
-    int row_cache = 3;
+    dist.buf = (FCELL *) Rast_allocate_buf ( dist.type );
+    dir.buf = (CELL *) Rast_allocate_buf ( dir.type );
+    up.buf = (FCELL *) Rast_allocate_buf ( up.type );
+    dw.buf = (FCELL *) Rast_allocate_buf ( dw.type );
 
     /* Allocate row cache*/
     elev.cache =   ( FCELL ** ) G_malloc( row_cache * sizeof(FCELL *));
     road.cache =   (CELL **) G_malloc(row_cache * sizeof(CELL *));
     domain.cache = (CELL **) G_malloc(row_cache* sizeof(CELL *));
 
-    dist.cache = (FCELL **) G_malloc(row_cache * sizeof(FCELL *));
+    /* dist.cache = (FCELL **) G_malloc(row_cache * sizeof(FCELL *));
     dir.cache =  (CELL **) G_malloc(row_cache * sizeof(CELL *));
     up.cache =   (FCELL **) G_malloc(row_cache * sizeof(FCELL *));
-    dw.cache =   (FCELL **) G_malloc(row_cache * sizeof(FCELL *));
-
-    int rowtest = 4;
-    // setup the ROWIO struct
-    // similar to line 68, r.mfilter/perform.c
-    //            R,        fd,      nrows, len, getrow, putrow
-    Rowio_setup ( &elev.io, elev.fd, nrows, ncols * sizeof(FCELL), getrow, NULL );
-    elev.cache[0] = Rowio_get(&elev.io, rowtest-1);
-    elev.cache[1] = Rowio_get(&elev.io, rowtest-1);
-    elev.cache[2] = Rowio_get(&elev.io, rowtest-1);
-    // read and modify the value in the row
-    elev.cache[0][0] = 10 * elev.cache[0][0];
-    // write in to the file
-    Rowio_put(&elev.io, elev.cache[0], rowtest-1);
+    dw.cache =   (FCELL **) G_malloc(row_cache * sizeof(FCELL *)); */
 
 
     /*
@@ -246,36 +301,45 @@ int main ( int argc, char *argv[] )
      *
      */
     int row, col;
-
+    float distdom = DISTDOMAIN, dropdom = DROPDOMAIN;
+    float distroad = DISTROAD, droproad = DROPROAD;
+    int dirdom = DIRDOMAIN, dirroad = DIRROAD;
     for ( row = 0; row < nrows; row++ )
-{
+    {
+        G_percent ( row, nrows, 2 );
         Rast_get_f_row ( elev.fd, elev.buf, row );
         Rast_get_c_row ( road.fd, road.buf, row );
         Rast_get_c_row ( domain.fd, domain.buf, row );
         for ( col = 0; col < ncols; col++ )
         {
-            dist.buf[col] = ( FCELL ) ( elev.buf[col] + road.buf[col] + domain.buf[col] );
-            dir.buf[col] = ( CELL ) ( elev.buf[col] + road.buf[col] + domain.buf[col] );
-            up.buf[col] = ( FCELL ) ( elev.buf[col] + road.buf[col] + domain.buf[col] );
-            dw.buf[col] = ( FCELL ) ( elev.buf[col] + road.buf[col] + domain.buf[col] );
+            if (Rast_is_c_null_value( &domain.buf[col]) == 0 )
+            {
+                segment_put ( dist.seg, &distdom, row, col );
+                segment_put ( dir.seg, &dirdom, row, col );
+                segment_put ( up.seg, &dropdom, row, col );
+                segment_put ( dw.seg, &dropdom, row, col );
+            }
+            if (Rast_is_c_null_value( road.buf[col]) == 0)
+            {
+                segment_put ( dist.seg, &distroad, row, col );
+                segment_put ( dir.seg, &dirroad, row, col );
+                segment_put ( up.seg, &droproad, row, col );
+                segment_put ( dw.seg, &droproad, row, col );
+            }
         }
-        Rast_put_f_row ( dist.fd, dist.buf );
-        Rast_put_c_row ( dir.fd, dir.buf );
-        Rast_put_f_row ( up.fd, up.buf );
-        Rast_put_f_row ( dw.fd, dw.buf );
     }
-
-    //DEBUG:
-    fprintf ( stdout, "\nINPUT: elev = %s, road=%s, domain=%s\n", elev.name, road.name, domain.name );
 
     /* closing raster maps */
     Rast_close ( elev.fd );
     Rast_close ( road.fd );
     Rast_close ( domain.fd );
+
+    /*
     Rast_close ( dist.fd );
     Rast_close ( dir.fd );
     Rast_close ( up.fd );
     Rast_close ( dw.fd );
+    */
 
     /* add command line incantation to history file */
 

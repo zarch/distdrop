@@ -5,7 +5,7 @@
 #include <grass/gis.h>
 #include <grass/raster.h>
 #include <grass/glocale.h>
-#include <grass/rowio.h>
+#include <grass/segment.h>
 
 #include "glob.h"
 #include "cache.h"
@@ -28,16 +28,6 @@
  * - use a cache with more than 3 rows;
  *
  */
-int getrow ( int fd, void *buf, int row, int len, int direction )
-{
-    if ( direction > 0 )
-        lseek ( fd, ( off_t ) row * len, 0 );
-    else
-        lseek ( fd, ( off_t ) ( nrows - row - 1 ) * len, 0 );
-    if ( read ( fd, ( DCELL * ) buf, len ) != len )
-        G_fatal_error ( _ ( "Error reading temporary file" ) );
-    return 1;
-}
 
 int update_float_cache ( int *row, int *last_row, int *nrows, fcell_map *map )
 {
