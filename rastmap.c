@@ -2,14 +2,20 @@
 
 #include "rastmap.h"
 
-int allocate_buf(cell_map *map, void *buf)
+int allocate_buf(cell_map *map)
 {
-    if(map->type == CELL_TYPE)
-        buf = (CELL *) Rast_allocate_buf ( map->type );
-    if(map->type == FCELL_TYPE)
-        buf = (FCELL *) Rast_allocate_buf ( map->type );
-    if(map->type == DCELL_TYPE)
-        buf = (DCELL *) Rast_allocate_buf ( map->type );
+    if(map->type == CELL_TYPE) {
+        map->buf = Rast_allocate_buf ( map->type );
+        map->cbuf = (CELL*)map->buf;
+    }
+    if(map->type == FCELL_TYPE) {
+        map->buf = Rast_allocate_buf ( map->type );
+        map->fbuf = (FCELL*)map->buf;
+    }
+    if(map->type == DCELL_TYPE) {
+        map->buf = Rast_allocate_buf ( map->type );
+        map->dbuf = (DCELL*)map->buf;
+    }
 
     return 0;
 }

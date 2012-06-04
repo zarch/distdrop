@@ -187,6 +187,7 @@ int main ( int argc, char *argv[] ){
     segment_info.ncols = Rast_window_cols();
     segment_info.srows = SEGROWSIZE;
     segment_info.scols = SEGCOLSIZE;
+    segment_info.maxmem = 1024;
 
     G_message ( "Read and prepare input and output maps...\n" );
     prepare_input ( &road, &domain, &dist, &dir, &up, &dw, &segment_info);

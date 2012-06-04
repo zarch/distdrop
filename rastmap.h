@@ -14,6 +14,9 @@ typedef struct __cell_map__ {
     int temp_fd;
     SEGMENT seg;
     void *buf;
+    CELL *cbuf;
+    FCELL *fbuf;
+    DCELL *dbuf;
 } cell_map;
 
 /* COLLECT SEGMENTATION INFO */
@@ -27,7 +30,7 @@ typedef struct __seg_map__ {
     int segments_in_memory;
 } seg_map;
 
-extern int allocate_buf(cell_map *, void *);
+extern int allocate_buf(cell_map *);
 extern int check_fd(cell_map *);
 extern int manage_segments(seg_map *);
 extern int init_seg_map(cell_map *, seg_map *);

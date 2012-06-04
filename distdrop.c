@@ -27,8 +27,8 @@ int prepare_input ( cell_map *road, cell_map *domain,
     manage_segments( segment_info );
 
     /* Allocate input buffer */
-    road->buf = (CELL *) Rast_allocate_buf ( road->type );
-    domain->buf = (CELL *) Rast_allocate_buf ( domain->type );
+    allocate_buf(road);
+    allocate_buf(domain);
 
     G_message( _( "Creating segment files for output maps...\n" ) );
 
@@ -51,15 +51,29 @@ int prepare_input ( cell_map *road, cell_map *domain,
      */
     G_message( _( "Start to merge road and computational domain\n" ) );
     int row, col;
-    for ( row = 0; row < nrows; row++ ){
-        Rast_get_row ( domain->fd, domain->buf, row, domain->type  );
-        printf( "row: %d => ", row );
-        for ( col = 0; col < ncols; col++ ){
-            printf( " %d", &domain->buf[col] );
-        }
-        printf( " \n" );
-    }
-    printf( "===================================\n" );
+//     for ( row = 0; row < nrows; row++ ){
+//         Rast_get_row ( domain->fd, domain->buf, row, domain->type  );
+//         printf( "row: %d => ", row );
+//
+//         if(domain->type == CELL_TYPE) {
+//             for ( col = 0; col < ncols; col++ ){
+//                 printf( " %d", domain->cbuf[col] );
+//             }
+//         }
+//         if(domain->type == FCELL_TYPE) {
+//             for ( col = 0; col < ncols; col++ ){
+//                 printf( " %f", domain->fbuf[col] );
+//             }
+//         }
+//         if(domain->type == DCELL_TYPE) {
+//             for ( col = 0; col < ncols; col++ ){
+//                 printf( " %f", domain->dbuf[col] );
+//             }
+//         }
+//
+//         printf( " \n" );
+//     }
+//     printf( "===================================\n" );
     float distdom = DISTDOMAIN, dropdom = DROPDOMAIN;
     float distroad = DISTROAD, droproad = DROPROAD;
     int dirdom = DIRDOMAIN, dirroad = DIRROAD;
@@ -69,18 +83,36 @@ int prepare_input ( cell_map *road, cell_map *domain,
         Rast_get_row ( domain->fd, domain->buf, row, domain->type  );
         printf( "row: %d => ", row );
         for ( col = 0; col < ncols; col++ ){
-            printf( " %d", Rast_is_null_value( &domain->buf[col], domain->type) );
-            if ( Rast_is_null_value( &domain->buf[col], domain->type) == 0 ){
+
+            void *val = NULL;
+
+            if(domain->type == CELL_TYPE)
+                val = (void *)&domain->cbuf[col];
+            if(domain->type == FCELL_TYPE)
+                val = (void *)&domain->fbuf[col];
+            if(domain->type == DCELL_TYPE)
+                val = (void *)&domain->dbuf[col];
+
+            //printf( " %d", Rast_is_null_value( val, domain->type) );
+
+            if ( Rast_is_null_value( val, domain->type) == 0 ){
             //if (&domain->buf[col] == 1 ){
                 // Domain cell is not null
-                //printf( " 0" );
+                printf( " 0" );
                 segment_put ( &dist->seg, &distdom, row, col );
                 segment_put ( &dir->seg, &dirdom, row, col );
                 segment_put ( &up->seg, &dropdom, row, col );
                 segment_put ( &dw->seg, &dropdom, row, col );
-            } //else printf( " X" );
+            } else printf( " X" );
 
-            if ( Rast_is_null_value( &road->buf[col], road->type) == 0 ){
+            if(road->type == CELL_TYPE)
+                val = (void *)&road->cbuf[col];
+            if(road->type == FCELL_TYPE)
+                val = (void *)&road->fbuf[col];
+            if(road->type == DCELL_TYPE)
+                val = (void *)&road->dbuf[col];
+
+            if ( Rast_is_null_value( val, road->type) == 0 ){
                 // Road cell is not null
                 segment_put ( &dist->seg, &distroad, row, col );
                 segment_put ( &dir->seg, &dirroad, row, col );
