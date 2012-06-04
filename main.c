@@ -190,7 +190,11 @@ int main ( int argc, char *argv[] ){
     segment_info.maxmem = 1024;
 
     G_message ( "Read and prepare input and output maps...\n" );
-    prepare_input ( &road, &domain, &dist, &dir, &up, &dw, &segment_info);
+    queue **redo_rows = prepare_input ( &road, &domain, &dist,
+                                        &dir, &up, &dw, &segment_info);
+
+    //distdrop ( &elev, &dist, &dir, &up, &dw,
+    //           &segment_info, movements, redo_rows);
 
     /* Copy the segments back to the input maps */
     copy_segment(&dist, 1);

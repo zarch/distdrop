@@ -1,5 +1,6 @@
 #include "rastmap.h"
-
+#include "queue.h"
+#include "move.h"
 
 #define DISTDOMAIN 10000.0f
 #define DISTROAD 0.0f
@@ -9,7 +10,7 @@
 #define DROPROAD 0
 
 
-extern int prepare_input ( cell_map *,     /* road   */
+extern queue **prepare_input ( cell_map *,     /* road   */
                            cell_map *,     /* domain */
                            cell_map *,     /* dist   */
                            cell_map *,     /* dir    */

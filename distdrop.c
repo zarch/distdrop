@@ -10,10 +10,12 @@
 #include "distdrop.h"
 
 
-int prepare_input ( cell_map *road, cell_map *domain,
-                           cell_map *dist, cell_map *dir,
-                           cell_map *up, cell_map *dw,
-                           seg_map *segment_info)
+#define NULL_MAP -9999
+
+queue **prepare_input ( cell_map *road, cell_map *domain,
+                        cell_map *dist, cell_map *dir,
+                        cell_map *up, cell_map *dw,
+                        seg_map *segment_info)
 {
 
     G_message( _ ("Get the file descriptor of the input maps\n" ) );
@@ -29,6 +31,8 @@ int prepare_input ( cell_map *road, cell_map *domain,
     /* Allocate input buffer */
     allocate_buf(road);
     allocate_buf(domain);
+
+    queue **road_queue = create_empty_array_of_queue( nrows );
 
     G_message( _( "Creating segment files for output maps...\n" ) );
 
@@ -51,40 +55,22 @@ int prepare_input ( cell_map *road, cell_map *domain,
      */
     G_message( _( "Start to merge road and computational domain\n" ) );
     int row, col;
-//     for ( row = 0; row < nrows; row++ ){
-//         Rast_get_row ( domain->fd, domain->buf, row, domain->type  );
-//         printf( "row: %d => ", row );
-//
-//         if(domain->type == CELL_TYPE) {
-//             for ( col = 0; col < ncols; col++ ){
-//                 printf( " %d", domain->cbuf[col] );
-//             }
-//         }
-//         if(domain->type == FCELL_TYPE) {
-//             for ( col = 0; col < ncols; col++ ){
-//                 printf( " %f", domain->fbuf[col] );
-//             }
-//         }
-//         if(domain->type == DCELL_TYPE) {
-//             for ( col = 0; col < ncols; col++ ){
-//                 printf( " %f", domain->dbuf[col] );
-//             }
-//         }
-//
-//         printf( " \n" );
-//     }
-//     printf( "===================================\n" );
+
     float distdom = DISTDOMAIN, dropdom = DROPDOMAIN;
     float distroad = DISTROAD, droproad = DROPROAD;
     int dirdom = DIRDOMAIN, dirroad = DIRROAD;
+
+
     for ( row = 0; row < nrows; row++ ){
         G_percent ( row, nrows, 2 );
         Rast_get_row ( road->fd, road->buf, row, road->type  );
         Rast_get_row ( domain->fd, domain->buf, row, domain->type  );
-        printf( "row: %d => ", row );
+
         for ( col = 0; col < ncols; col++ ){
 
             void *val = NULL;
+            FCELL null_map_f = NULL_MAP;
+            CELL null_map_c = NULL_MAP;
 
             if(domain->type == CELL_TYPE)
                 val = (void *)&domain->cbuf[col];
@@ -93,17 +79,21 @@ int prepare_input ( cell_map *road, cell_map *domain,
             if(domain->type == DCELL_TYPE)
                 val = (void *)&domain->dbuf[col];
 
-            //printf( " %d", Rast_is_null_value( val, domain->type) );
 
             if ( Rast_is_null_value( val, domain->type) == 0 ){
             //if (&domain->buf[col] == 1 ){
                 // Domain cell is not null
-                printf( " 0" );
                 segment_put ( &dist->seg, &distdom, row, col );
                 segment_put ( &dir->seg, &dirdom, row, col );
                 segment_put ( &up->seg, &dropdom, row, col );
                 segment_put ( &dw->seg, &dropdom, row, col );
-            } else printf( " X" );
+            }
+            else {
+                segment_put ( &dist->seg, &null_map_f, row, col );
+                segment_put ( &dir->seg, &null_map_c, row, col );
+                segment_put ( &up->seg, &null_map_f, row, col );
+                segment_put ( &dw->seg, &null_map_f, row, col );            ;
+            }
 
             if(road->type == CELL_TYPE)
                 val = (void *)&road->cbuf[col];
@@ -118,6 +108,7 @@ int prepare_input ( cell_map *road, cell_map *domain,
                 segment_put ( &dir->seg, &dirroad, row, col );
                 segment_put ( &up->seg, &droproad, row, col );
                 segment_put ( &dw->seg, &droproad, row, col );
+                array_append(row, col, road_queue);
             }
         }
         printf( " \n" );
@@ -136,18 +127,20 @@ int prepare_input ( cell_map *road, cell_map *domain,
     segment_flush( &up->seg);
     segment_flush( &dw->seg);
 
-    return 0;
+    return road_queue;
 }
 
-/*
-void queue_pixel_core ( move   *movements, queue **redo_rows,
-                       float **rdist, float **elevation,
-                       short **rdir, float **rdrop_up, float **rdrop_dw,
-                       int nrows, int ncols,
-                       //------------------------------------------------
-                       // indexes
-                       int row, int *last_row, int *count, int **neighbours,)                    )
+
+int queue_pixel_core ( move *movements, queue **redo_rows,
+                       cell_map *dist, cell_map *elev,
+                       cell_map *dir, cell_map *up, cell_map *dw,
+                       seg_map *segment_info, int row, int *count)
 {
+    // pass
+    printf(' ');
+}
+
+/*{
     elem *el = pop( redo_rows[row] ), *prev;
     int row_canged = 0;
     int *neighbours[8][2] = 0;
@@ -219,32 +212,33 @@ void queue_pixel_core ( move   *movements, queue **redo_rows,
     }
 }
 
+*/
+
+
+
+
 
 int queue_pixel ( queue **redo_rows,
                   cell_map *elev, cell_map *dist,
                   cell_map  *dir, cell_map *up, cell_map *dw,
                   seg_map *segment_info, move *movements )
 {
-    int count = 0, last_row=-1;//,  nx, ny;
+    int count = 0;//,  nx, ny;
 
     printf ( "\n\n↓\n" );
     for ( int i = 0; i < segment_info->nrows; i++ ){
-        queue_pixel_core ( movements, redo_rows, dist, elev, rdir,
+        queue_pixel_core ( movements, redo_rows, dist, elev, dir,
                           up, dw, segment_info,
-                          //------------------------------------------------
-                          // indexes
-                          i, &last_row, &count, neighbours);
+                          i, &count);
     }
     if (count > 0)
     {
         count = 0;
         printf ( "\n\n↑\n" );
         for ( int i = segment_info->nrows-1; i >= 0; i-- ){
-            queue_pixel_core ( movements, redo_rows, dist, elev, rdir,
+            queue_pixel_core ( movements, redo_rows, dist, elev, dir,
                           up, dw, segment_info,
-                          //------------------------------------------------
-                          // indexes
-                          i, &last_row, &count, neighbours);
+                          i, &count);
         }
     }
     printf("===========================================\n");
@@ -252,15 +246,13 @@ int queue_pixel ( queue **redo_rows,
 }
 
 
-
-static int distdrop ( cell_map *elev,
-                      cell_map *dist, cell_map *dir,
-                      cell_map *up, cell_map *dw,
-                      seg_map *segment_info, move *movements)
+int distdrop ( cell_map *elev,
+               cell_map *dist, cell_map *dir,
+               cell_map *up, cell_map *dw,
+               seg_map *segment_info, move *movements,
+               queue **redo_rows)
 {
     int all_done = 1;
-    //TODO: move this operation when we made dist map
-    queue **redo_rows = init_array_of_queue_from_map( dist,  segment_info);
 
     while ( all_done ){ // if all_done != 0? continue: break
         all_done = queue_pixel ( redo_rows,  elev, dist,
@@ -270,4 +262,4 @@ static int distdrop ( cell_map *elev,
     return 0;
 }
 
-*/
+
