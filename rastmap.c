@@ -20,6 +20,12 @@ int allocate_buf(cell_map *map)
     return 0;
 }
 
+int get_segment_number(int row, int col, seg_map *segment_info){
+    // xrow//srows * cols // scols + xcol//scols
+    return row/segment_info->srows * segment_info->ncols / segment_info->scols +
+           col/segment_info->scols;
+}
+
 int check_fd(cell_map *map)
 {
     map->fd = Rast_open_old ( map->name, map->mapset );

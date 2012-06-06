@@ -26,6 +26,22 @@
  *
  * then remove the generated rasters: ::
  * $ g.remove rast=dir0@atest,dist0@atest,up0,dw0
+ *
+ * SEGMENTATION SIZE:
+ *
+ * seg 256 x 256
+ * real    0m16.262s
+ * user    0m12.519s
+ * sys     0m0.913s
+ *
+ * seg 64 x 64
+ * real    0m13.384s
+ * user    0m10.283s
+ * sys     0m0.723s
+ *
+ *
+ *
+ *
  */
 
 #include <stdio.h>
@@ -190,11 +206,16 @@ int main ( int argc, char *argv[] ){
     segment_info.maxmem = 1024;
 
     G_message ( "Read and prepare input and output maps...\n" );
-    queue **redo_rows = prepare_input ( &road, &domain, &dist,
+    queue **redo_segments = prepare_input ( &road, &domain, &dist,
                                         &dir, &up, &dw, &segment_info);
 
-    //distdrop ( &elev, &dist, &dir, &up, &dw,
-    //           &segment_info, movements, redo_rows);
+    G_message ( "Start processing data...\n" );
+    distdrop ( &elev, &dist, &dir, &up, &dw,
+               &segment_info, &movements,
+               redo_segments);
+
+    //print_dir ( &dir, &segment_info );
+
 
     /* Copy the segments back to the input maps */
     copy_segment(&dist, 1);

@@ -34,7 +34,7 @@ typedef struct __queue__
 extern queue *create_empty_queue ( void );
 extern queue **create_empty_array_of_queue ( int );
 extern void append ( int, int, queue * );
-extern void array_append ( int, int, queue ** );
+extern void array_append ( int, int, int, queue ** );
 extern elem *pop ( queue * );
 extern void populate ( int, queue * );
 extern void print_queue ( queue * );

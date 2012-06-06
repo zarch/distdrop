@@ -35,5 +35,6 @@ extern int check_fd(cell_map *);
 extern int manage_segments(seg_map *);
 extern int init_seg_map(cell_map *, seg_map *);
 extern int copy_segment(cell_map *, short);
+extern int get_segment_number(int, int, seg_map *);
 
 #endif  /* RASTMAP_H */

@@ -45,9 +45,9 @@ elem *pop ( queue *l )
 
 
 
-void array_append ( int row, int col, queue **l )
+void array_append ( int indx, int row, int col, queue **l )
 {
-    append ( row, col, l[row] );
+    append ( row, col, l[indx] );
 }
 
 
