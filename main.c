@@ -130,7 +130,7 @@ int main ( int argc, char *argv[] ){
 
     parm.domain = G_define_standard_option ( G_OPT_R_INPUT );
     parm.domain->key = "domain";
-    parm.domain->required = YES;
+    parm.domain->required = NO;
     parm.domain->description = _ ( "Name of the domain map" );
 
     /*
@@ -141,28 +141,28 @@ int main ( int argc, char *argv[] ){
     // Distance
     parm.distance = G_define_standard_option ( G_OPT_R_OUTPUT );
     parm.distance->key = "distance";
-    parm.distance->required = NO;
+    parm.distance->required = YES;
     parm.distance->description = _ ( "Name for output distance raster map" );
     parm.distance->guisection = _ ( "Outputs" );
 
     // Direction
     parm.direction = G_define_standard_option ( G_OPT_R_OUTPUT );
     parm.direction->key = "direction";
-    parm.direction->required = NO;
+    parm.direction->required = YES;
     parm.direction->description = _ ( "Name for output direction raster map" );
     parm.direction->guisection = _ ( "Outputs" );
 
     // Drop up
     parm.drop_up = G_define_standard_option ( G_OPT_R_OUTPUT );
     parm.drop_up->key = "up";
-    parm.drop_up->required = NO;
+    parm.drop_up->required = YES;
     parm.drop_up->description = _ ( "Name for output drop up raster map" );
     parm.drop_up->guisection = _ ( "Outputs" );
 
     // Drop down
     parm.drop_dw = G_define_standard_option ( G_OPT_R_OUTPUT );
     parm.drop_dw->key = "down";
-    parm.drop_dw->required = NO;
+    parm.drop_dw->required = YES;
     parm.drop_dw->description = _ ( "Name for output drop down raster map" );
     parm.drop_dw->guisection = _ ( "Outputs" );
 
@@ -174,17 +174,19 @@ int main ( int argc, char *argv[] ){
     /* stores options and flags to variables */
     elev.name   = parm.elevation->answer;
     road.name   = parm.road->answer;
-    domain.name = parm.domain->answer;
+
+
+    if (parm.domain->answer){
+        domain.name = parm.domain->answer;
+    }
+    else {
+        domain.name = elev.name;
+    }
 
     dist.name = parm.distance->answer;
     dir.name  = parm.direction->answer;
     up.name   = parm.drop_up->answer;
     dw.name   = parm.drop_dw->answer;
-
-    /* store maps types */
-    elev.type = FCELL_TYPE;
-    road.type = CELL_TYPE;
-    domain.type = CELL_TYPE;
 
     dist.type = FCELL_TYPE;
     dir.type = CELL_TYPE;

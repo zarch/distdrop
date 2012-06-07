@@ -12,6 +12,34 @@
 
 #define NULL_MAP -9999
 
+
+static int print_map_with_seg ( cell_map *map, seg_map *seg )
+{
+    CELL map_cell = 0;
+    FILE *fp;
+    char *format;
+
+    fp = fopen(map->name, "w");
+    fprintf(fp, "# -*- coding: utf-8 -*-\n");
+
+    if(map->type == CELL_TYPE)
+        format = " %d";
+    if(map->type == FCELL_TYPE)
+        format = " %f";
+    if(map->type == DCELL_TYPE)
+        format = " %f";
+
+    for ( int row = 0; row < seg->nrows; row++ ){
+        for ( int col = 0; col < seg->ncols; col++ ){
+            segment_get( &map->seg, &map_cell, row, col );
+            fprintf ( fp, format, map_cell );
+        }
+        fprintf ( fp, "\n" );
+    }
+    fclose(fp);
+    return 0;
+}
+
 static int **new_int_map (int nrows, int ncols, int *set_number )
 {
     int    **new_map = ( int**    ) malloc ( nrows * sizeof ( int *    ) );
@@ -46,6 +74,9 @@ queue **prepare_input ( cell_map *road, cell_map *domain,
     /* Rast_open_old - returns file destriptor (>0) */
     road->fd = Rast_open_old ( road->name, "" );
     domain->fd = Rast_open_old ( domain->name, "" );
+
+    road->type = Rast_get_map_type( road->fd );
+    domain->type = Rast_get_map_type( domain->fd );
 
     int nrows = segment_info->nrows;
     int ncols = segment_info->ncols;
@@ -136,7 +167,6 @@ queue **prepare_input ( cell_map *road, cell_map *domain,
                 array_append(seg_numb, row, col, road_queue);
             }
         }
-        printf( " \n" );
     }
 
     G_message( _( "Close the input maps\n" ) );
@@ -207,6 +237,7 @@ static int queue_pixel_core ( move *movements, queue **redo_segments,
                             segment_get( &elev->seg, &elev_cell, row, col );
                             segment_get( &elev->seg, &elev_cell_neig, nx, ny );
                             float drop = elev_cell_neig - elev_cell;
+
                             if ( drop >= 0 )
                             {
                                 segment_get( &up->seg, &up_cell, row, col );
@@ -251,7 +282,9 @@ static int queue_pixel ( queue **redo_segments,
     int count = 0;//,  nx, ny;
 
     printf ( "\n\n↓\n" );
+    int j = 1;
     for ( int i = 0; i < segment_info->nseg; i++ ){
+        G_percent ( j++, segment_info->nseg, 2 );
         queue_pixel_core ( movements, redo_segments, dist, elev, dir,
                           up, dw, segment_info,
                           i, &count, neighbours);
@@ -260,7 +293,9 @@ static int queue_pixel ( queue **redo_segments,
     {
         count = 0;
         printf ( "\n\n↑\n" );
+        int j = 1;
         for ( int i = segment_info->nseg-1; i >= 0; i-- ){
+            G_percent ( j++, segment_info->nseg, 2 );
             queue_pixel_core ( movements, redo_segments, dist, elev, dir,
                           up, dw, segment_info,
                           i, &count, neighbours);
@@ -283,7 +318,12 @@ int distdrop ( cell_map *elev,
                                      ( int ) sizeof ( movements[0] ), NULL );
 
     elev->fd = Rast_open_old ( elev->name, "" );
+    elev->type = Rast_get_map_type( elev->fd );
+
     init_seg_map(elev, segment_info);
+    copy_segment(elev, 0);
+
+    //print_map_with_seg ( elev, segment_info );
 
     while ( all_done ){ // if all_done != 0? continue: break
         all_done = queue_pixel ( redo_segments,  elev, dist,
@@ -295,10 +335,11 @@ int distdrop ( cell_map *elev,
 
 int print_dir ( cell_map *map, seg_map *seg )
 {
+    CELL dir_cell = 0;
     FILE *fp;
     fp = fopen(map->name, "w");
     fprintf(fp, "# -*- coding: utf-8 -*-\n");
-    CELL dir_cell = 0;
+
     for ( int row = 0; row < seg->nrows; row++ )
     {
         //printf("%d: ", row);
