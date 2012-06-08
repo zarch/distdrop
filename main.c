@@ -48,7 +48,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <fcntl.h>
-#include <grass/gis.h>
+
 #include <grass/raster.h>
 #include <grass/glocale.h>
 #include <grass/segment.h>
@@ -95,11 +95,12 @@ int main ( int argc, char *argv[] ){
 
     cell_map elev, dist, up, dw;
     cell_map road, domain, dir;
+    cell_map costin, costout;
 
     /* options */
     struct{
-        struct Option *elevation, *road, *domain, *distance, *direction,
-                *drop_up, *drop_dw;
+        struct Option *elevation, *road, *domain, *costin, *distance, *direction,
+                *drop_up, *drop_dw, *costout;
     } parm;
 
     /* initialize GIS environment */
@@ -110,6 +111,7 @@ int main ( int argc, char *argv[] ){
     G_add_keyword ( _ ( "raster" ) );
     G_add_keyword ( _ ( "distance" ) );
     G_add_keyword ( _ ( "drop" ) );
+    G_add_keyword ( _ ( "cost" ) );
     module->description = _ ( "Compute the distance and the drop from closest road" );
 
     /*
@@ -126,12 +128,17 @@ int main ( int argc, char *argv[] ){
     parm.road = G_define_standard_option ( G_OPT_R_INPUT );
     parm.road->key = "road";
     parm.road->required = YES;
-    parm.road->description = _ ( "Name of the road map" );
+    parm.road->description = _ ( "Name of the road map [raster]" );
 
     parm.domain = G_define_standard_option ( G_OPT_R_INPUT );
     parm.domain->key = "domain";
     parm.domain->required = NO;
-    parm.domain->description = _ ( "Name of the domain map" );
+    parm.domain->description = _ ( "Name of the domain map [raster]" );
+
+    parm.costin = G_define_standard_option ( G_OPT_R_INPUT );
+    parm.costin->key = "costin";
+    parm.costin->required = NO;
+    parm.costin->description = _ ( "Name of the cost map [raster] NOT IMPLEMENTED YET" );
 
     /*
      *
@@ -143,28 +150,35 @@ int main ( int argc, char *argv[] ){
     parm.distance->key = "distance";
     parm.distance->required = YES;
     parm.distance->description = _ ( "Name for output distance raster map" );
-    parm.distance->guisection = _ ( "Outputs" );
+
 
     // Direction
     parm.direction = G_define_standard_option ( G_OPT_R_OUTPUT );
     parm.direction->key = "direction";
     parm.direction->required = YES;
     parm.direction->description = _ ( "Name for output direction raster map" );
-    parm.direction->guisection = _ ( "Outputs" );
+
 
     // Drop up
     parm.drop_up = G_define_standard_option ( G_OPT_R_OUTPUT );
     parm.drop_up->key = "up";
     parm.drop_up->required = YES;
     parm.drop_up->description = _ ( "Name for output drop up raster map" );
-    parm.drop_up->guisection = _ ( "Outputs" );
+
 
     // Drop down
     parm.drop_dw = G_define_standard_option ( G_OPT_R_OUTPUT );
     parm.drop_dw->key = "down";
     parm.drop_dw->required = YES;
     parm.drop_dw->description = _ ( "Name for output drop down raster map" );
-    parm.drop_dw->guisection = _ ( "Outputs" );
+
+
+    // Total cost
+    parm.costout = G_define_standard_option ( G_OPT_R_OUTPUT );
+    parm.costout->key = "costout";
+    parm.costout->required = NO;
+    parm.costout->description = _ ( "Name for output cost raster map NOT IMPLEMENTED YET" );
+
 
     /* options and flags parser */
     if ( G_parser ( argc, argv ) )
@@ -181,6 +195,14 @@ int main ( int argc, char *argv[] ){
     }
     else {
         domain.name = elev.name;
+    }
+
+    if (parm.costin->answer){
+        costin.name = parm.costin->answer;
+        costout.name = parm.costout->answer;
+    }
+    else {
+        costin.name = 0;
     }
 
     dist.name = parm.distance->answer;
@@ -211,12 +233,26 @@ int main ( int argc, char *argv[] ){
     queue **redo_segments = prepare_input ( &road, &domain, &dist,
                                         &dir, &up, &dw, &segment_info);
 
+    struct Cell_head window;
+    /* Get database window parameters */
+    G_get_window(&window);
+    move *movements = get_mv(&window, 0);
+
+
     G_message ( "Start processing data...\n" );
     distdrop ( &elev, &dist, &dir, &up, &dw,
-               &segment_info, &movements,
+               &segment_info, movements,
                redo_segments);
 
     //print_dir ( &dir, &segment_info );
+    if (costin.name != 0){
+        /* PASS
+         *
+         * Using the direction map, call a function to compute the map cost
+         *
+         *
+         */
+    }
 
 
     /* Copy the segments back to the input maps */

@@ -214,7 +214,7 @@ static int queue_pixel_core ( move *movements, queue **redo_segments,
             get_neighbours ( row, col, movements, neighbours,
                              segment_info->nrows, segment_info->ncols );
 
-            for ( int n = 0; n < NMV ; n++ )
+            for ( int n = 0; n < ( int ) sizeof ( movements ) ; n++ )
             {
                 // TODO: after check if there are performce consegunece to declaire here or not
                 int nx = neighbours[n][0];

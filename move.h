@@ -1,4 +1,4 @@
-﻿#define NMV 8
+﻿#include <grass/gis.h>
 
 #define TYPE_SHORT 1
 #define TYPE_INT 2
@@ -14,5 +14,6 @@ typedef struct __move__
 } move;
 
 /* global variables declaration */
-extern move movements[NMV];
+/* extern move movements[NMV]; */
+extern move *get_mv(struct Cell_head *, int );
 extern int get_neighbours ( int, int, move *, int **, int, int );
